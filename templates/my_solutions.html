@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+
+{% block title %}My Solutions - Coding Platform{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">My Solutions</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Problem</th>
+                                <th>Topic</th>
+                                <th>Difficulty</th>
+                                <th>Status</th>
+                                <th>Submitted At</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for solution in solutions %}
+                            <tr>
+                                <td>{{ solution.title }}</td>
+                                <td>{{ solution.topic }}</td>
+                                <td>{{ solution.difficulty }}</td>
+                                <td>
+                                    {% if solution.status == 'solved' %}
+                                        <span class="badge bg-success">Solved</span>
+                                    {% elif solution.status == 'failed' %}
+                                        <span class="badge bg-danger">Failed</span>
+                                    {% else %}
+                                        <span class="badge bg-warning">Pending</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ solution.submitted_at }}</td>
+                                <td>
+                                    <a href="{{ url_for('problem', problem_id=solution.problem_id) }}" class="btn btn-sm btn-primary">View</a>
+                                    {% if solution.status == 'failed' %}
+                                        <button class="btn btn-sm btn-info" onclick="showError('{{ solution.error_message | escape }}')">View Error</button>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal for displaying errors -->
+<div class="modal fade" id="errorModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Error Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <pre id="errorMessage"></pre>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function showError(errorMessage) {
+    document.getElementById('errorMessage').textContent = errorMessage;
+    new bootstrap.Modal(document.getElementById('errorModal')).show();
+}
+</script>
+{% endblock %} 

@@ -1,0 +1,229 @@
+{% extends "base.html" %}
+
+{% block title %}{{ problem.title }} - Coding Platform{% endblock %}
+
+{% block extra_css %}
+<style>
+    .CodeMirror {
+        height: 400px;
+        border: 1px solid #ddd;
+    }
+    .test-results {
+        margin-top: 20px;
+    }
+    .test-case {
+        padding: 10px;
+        margin-bottom: 10px;
+        border-radius: 4px;
+    }
+    .test-case.success {
+        background-color: #d4edda;
+        border: 1px solid #c3e6cb;
+    }
+    .test-case.failure {
+        background-color: #f8d7da;
+        border: 1px solid #f5c6cb;
+    }
+    .error-analysis {
+        margin-top: 15px;
+        padding: 15px;
+        border-radius: 4px;
+        background-color: #f8f9fa;
+        border: 1px solid #e9ecef;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">{{ problem.title }}</h5>
+                <small class="text-muted">
+                    Topic: {{ problem.topic }} | Difficulty: {{ problem.difficulty }}
+                </small>
+            </div>
+            <div class="card-body">
+                <div class="problem-description">
+                    {{ problem.description | safe }}
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                Your Solution
+            </div>
+            <div class="card-body">
+                <textarea id="codeEditor">{{ problem.initial_code if problem.initial_code else '' }}</textarea>
+                <div class="mt-3">
+                    <button id="submitBtn" class="btn btn-primary">Submit Solution</button>
+                    <button id="runTestsBtn" class="btn btn-secondary">Run Tests</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                Test Results
+            </div>
+            <div class="card-body">
+                <div id="testResults" class="test-results">
+                    <!-- Test results will be displayed here -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Передаем данные задачи в JavaScript
+    const problemId = "{{ problem.id }}";
+</script>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let editor;
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize CodeMirror
+    editor = CodeMirror.fromTextArea(document.getElementById('codeEditor'), {
+        mode: 'python',
+        theme: 'monokai',
+        lineNumbers: true,
+        autoCloseBrackets: true,
+        matchBrackets: true,
+        indentUnit: 4
+    });
+
+    // Handle submit button click
+    document.getElementById('submitBtn').addEventListener('click', function() {
+        submitSolution();
+    });
+
+    // Handle run tests button click
+    document.getElementById('runTestsBtn').addEventListener('click', function() {
+        runTests();
+    });
+});
+
+function submitSolution() {
+    const code = editor.getValue();
+    
+    // Создаем FormData вместо JSON
+    const formData = new FormData();
+    formData.append('code', code);
+    
+    // Показываем индикатор загрузки
+    const testResultsDiv = document.getElementById('testResults');
+    testResultsDiv.innerHTML = '<div class="alert alert-info">Отправка решения...</div>';
+    
+    fetch(`/submit_solution/${problemId}`, {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        displayTestResults(data);
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        testResultsDiv.innerHTML = '<div class="alert alert-danger">Произошла ошибка при отправке решения.</div>';
+    });
+}
+
+function runTests() {
+    const code = editor.getValue();
+    
+    // Создаем FormData вместо JSON
+    const formData = new FormData();
+    formData.append('code', code);
+    
+    // Показываем индикатор загрузки
+    const testResultsDiv = document.getElementById('testResults');
+    testResultsDiv.innerHTML = '<div class="alert alert-info">Запуск тестов...</div>';
+    
+    fetch(`/run_tests/${problemId}`, {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        displayTestResults(data);
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        testResultsDiv.innerHTML = '<div class="alert alert-danger">Произошла ошибка при запуске тестов.</div>';
+    });
+}
+
+function displayTestResults(data) {
+    const testResultsDiv = document.getElementById('testResults');
+    testResultsDiv.innerHTML = '';
+
+    // Показываем сообщение о результате
+    const statusDiv = document.createElement('div');
+    statusDiv.className = data.status === 'success' ? 'alert alert-success' : 'alert alert-danger';
+    statusDiv.textContent = data.message || (data.status === 'success' ? 'Все тесты пройдены!' : 'Тесты не пройдены.');
+    testResultsDiv.appendChild(statusDiv);
+    
+    // Если есть вывод программы, показываем его
+    if (data.output) {
+        const outputDiv = document.createElement('div');
+        outputDiv.className = 'card mt-3';
+        
+        const outputHeader = document.createElement('div');
+        outputHeader.className = 'card-header';
+        outputHeader.textContent = 'Вывод программы';
+        outputDiv.appendChild(outputHeader);
+        
+        const outputBody = document.createElement('div');
+        outputBody.className = 'card-body';
+        outputBody.innerHTML = `<pre>${data.output}</pre>`;
+        outputDiv.appendChild(outputBody);
+        
+        testResultsDiv.appendChild(outputDiv);
+    }
+    
+    // Если есть ошибка, показываем её
+    if (data.error) {
+        const errorDiv = document.createElement('div');
+        errorDiv.className = 'card mt-3';
+        
+        const errorHeader = document.createElement('div');
+        errorHeader.className = 'card-header text-white bg-danger';
+        errorHeader.textContent = 'Ошибка';
+        errorDiv.appendChild(errorHeader);
+        
+        const errorBody = document.createElement('div');
+        errorBody.className = 'card-body';
+        errorBody.innerHTML = `<pre>${data.error}</pre>`;
+        errorDiv.appendChild(errorBody);
+        
+        testResultsDiv.appendChild(errorDiv);
+    }
+    
+    // Если есть анализ ошибки, показываем его
+    if (data.analysis) {
+        const analysisDiv = document.createElement('div');
+        analysisDiv.className = 'card mt-3';
+        
+        const analysisHeader = document.createElement('div');
+        analysisHeader.className = 'card-header text-white bg-info';
+        analysisHeader.textContent = 'Анализ ошибки';
+        analysisDiv.appendChild(analysisHeader);
+        
+        const analysisBody = document.createElement('div');
+        analysisBody.className = 'card-body error-analysis';
+        analysisBody.innerHTML = data.analysis;
+        analysisDiv.appendChild(analysisBody);
+        
+        testResultsDiv.appendChild(analysisDiv);
+    }
+}
+</script>
+{% endblock %} 

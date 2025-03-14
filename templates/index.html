@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+
+{% block title %}Задачи - Coding Platform{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-3">
+        <div class="card">
+            <div class="card-header">
+                Filters
+            </div>
+            <div class="card-body">
+                <form id="filterForm" method="get" action="{{ url_for('index') }}">
+                    <div class="mb-3">
+                        <label for="topic" class="form-label">Topic</label>
+                        <select class="form-select" id="topic" name="topic">
+                            <option value="">All Topics</option>
+                            {% for topic in topics %}
+                            <option value="{{ topic.topic }}" {% if selected_topic == topic.topic %}selected{% endif %}>{{ topic.topic }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="difficulty" class="form-label">Difficulty</label>
+                        <select class="form-select" id="difficulty" name="difficulty">
+                            <option value="">All Difficulties</option>
+                            {% for difficulty in difficulties %}
+                            <option value="{{ difficulty.difficulty }}" {% if selected_difficulty == difficulty.difficulty %}selected{% endif %}>{{ difficulty.difficulty }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Apply Filters</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-9">
+        <!-- Отладочная информация -->
+        <div class="alert alert-info">
+            <h5>Отладочная информация</h5>
+            <p>Количество задач: {{ problems|length if problems else 0 }}</p>
+            {% if topics %}
+            <p>Доступные темы: {% for topic in topics %}{{ topic.topic }}{% if not loop.last %}, {% endif %}{% endfor %}</p>
+            {% else %}
+            <p>Нет доступных тем</p>
+            {% endif %}
+            
+            {% if difficulties %}
+            <p>Доступные сложности: {% for difficulty in difficulties %}{{ difficulty.difficulty }}{% if not loop.last %}, {% endif %}{% endfor %}</p>
+            {% else %}
+            <p>Нет доступных сложностей</p>
+            {% endif %}
+        </div>
+        
+        <div class="row">
+            {% if problems and problems|length > 0 %}
+                {% for problem in problems %}
+                <div class="col-md-6 mb-4">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ problem.title }}</h5>
+                            <p class="card-text">{{ problem.description[:200] }}...</p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <span class="badge bg-primary">{{ problem.topic }}</span>
+                                    <span class="badge bg-secondary">{{ problem.difficulty }}</span>
+                                </div>
+                                <a href="{{ url_for('problem', problem_id=problem.id) }}" class="btn btn-outline-primary">Решить</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="col-12">
+                    <div class="alert alert-warning">
+                        <h4>Задачи не найдены</h4>
+                        <p>В базе данных нет задач, соответствующих выбранным фильтрам. Попробуйте изменить параметры поиска или добавьте новые задачи.</p>
+                        {% if current_user.is_authenticated and current_user.role in ['admin', 'teacher'] %}
+                            <a href="{{ url_for('add_problem') }}" class="btn btn-primary">Добавить задачу</a>
+                            {% if current_user.role == 'admin' %}
+                                <a href="{{ url_for('initialize_samples') }}" class="btn btn-success">Инициализировать примеры</a>
+                            {% endif %}
+                        {% endif %}
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.getElementById('filterForm').addEventListener('submit', function(e) {
+    // Форма теперь работает через GET, поэтому мы можем позволить браузеру выполнить обычную отправку формы
+    // e.preventDefault();
+});
+</script>
+{% endblock %} 

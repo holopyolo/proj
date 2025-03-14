@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+
+{% block title %}Add New Problem - Coding Platform{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Add New Problem</h5>
+            </div>
+            <div class="card-body">
+                <form id="addProblemForm" method="POST" action="{{ url_for('add_problem') }}">
+                    <div class="mb-3">
+                        <label for="title" class="form-label">Title</label>
+                        <input type="text" class="form-control" id="title" name="title" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Description</label>
+                        <textarea class="form-control" id="description" name="description" rows="5" required></textarea>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="topic" class="form-label">Topic</label>
+                        <select class="form-select" id="topic" name="topic" required>
+                            <option value="algorithms">Algorithms</option>
+                            <option value="data_structures">Data Structures</option>
+                            <option value="strings">Strings</option>
+                            <option value="numbers">Numbers</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="difficulty" class="form-label">Difficulty</label>
+                        <select class="form-select" id="difficulty" name="difficulty" required>
+                            <option value="easy">Easy</option>
+                            <option value="medium">Medium</option>
+                            <option value="hard">Hard</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="initial_code" class="form-label">Initial Code Template</label>
+                        <textarea class="form-control" id="initial_code" name="initial_code" rows="5"></textarea>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="test_cases" class="form-label">Test Cases (JSON format)</label>
+                        <textarea class="form-control" id="test_cases" name="test_cases" rows="5" required></textarea>
+                        <div class="form-text">
+                            Format: [{"input": "test input", "output": "expected output", "description": "test case description"}]
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary">Add Problem</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.getElementById('addProblemForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this);
+    const data = {
+        title: formData.get('title'),
+        description: formData.get('description'),
+        topic: formData.get('topic'),
+        difficulty: formData.get('difficulty'),
+        initial_code: formData.get('initial_code'),
+        test_cases: JSON.parse(formData.get('test_cases'))
+    };
+    
+    fetch('/add_problem', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            window.location.href = '/';
+        } else {
+            alert('Error: ' + data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred while adding the problem.');
+    });
+});
+</script>
+{% endblock %} 

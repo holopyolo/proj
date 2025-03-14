@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+
+{% block title %}Инициализация примеров - Coding Platform{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">Инициализация базы данных с примерами</h4>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-warning">
+                        <h5 class="alert-heading">Внимание!</h5>
+                        <p>Эта операция удалит существующую базу данных и создаст новую с примерами задач.</p>
+                        <p><strong>Все существующие данные будут потеряны!</strong></p>
+                    </div>
+
+                    <h5>После инициализации в базе будут созданы:</h5>
+                    <ul>
+                        <li>Пользователь с правами администратора (логин: <code>admin</code>, пароль: <code>admin</code>)</li>
+                        <li>Пользователь с правами учителя (логин: <code>teacher</code>, пароль: <code>teacher</code>)</li>
+                        <li>Набор примеров задач различной сложности и тематики</li>
+                    </ul>
+
+                    <form action="{{ url_for('initialize_samples') }}" method="post" class="mt-4">
+                        <div class="form-group text-center">
+                            <button type="submit" class="btn btn-danger mr-2">
+                                <i class="fas fa-database"></i> Инициализировать базу данных
+                            </button>
+                            <a href="{{ url_for('index') }}" class="btn btn-secondary">
+                                <i class="fas fa-times"></i> Отмена
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

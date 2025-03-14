@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+
+{% block title %}О проекте - Coding Platform{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-10 offset-md-1">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">О проекте Coding Platform</h4>
+                </div>
+                <div class="card-body">
+                    <h5>Что такое Coding Platform?</h5>
+                    <p>
+                        Coding Platform — это образовательная платформа для обучения программированию на языке Python. 
+                        Система позволяет решать задачи различной сложности с автоматической проверкой решений и получать 
+                        интеллектуальный анализ ошибок с использованием современных технологий искусственного интеллекта.
+                    </p>
+
+                    <h5>Основные возможности</h5>
+                    <ul>
+                        <li><strong>Библиотека задач</strong> - доступ к задачам различной сложности и тематики</li>
+                        <li><strong>Автоматическая проверка</strong> - мгновенная обратная связь о вашем решении</li>
+                        <li><strong>Анализ ошибок с помощью ИИ</strong> - интеллектуальный помощник для поиска и исправления ошибок</li>
+                        <li><strong>Персональная история решений</strong> - отслеживание вашего прогресса</li>
+                        <li><strong>Фильтрация и поиск задач</strong> - быстрый поиск подходящих задач по теме и сложности</li>
+                    </ul>
+
+                    <h5>Роли пользователей</h5>
+                    <div class="table-responsive">
+                        <table class="table table-bordered">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Роль</th>
+                                    <th>Возможности</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><strong>Пользователь</strong></td>
+                                    <td>Решение задач, просмотр своих решений, доступ к анализу ошибок</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Учитель</strong></td>
+                                    <td>Все возможности пользователя + создание, редактирование и удаление задач</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Администратор</strong></td>
+                                    <td>Все возможности учителя + управление пользователями и системой</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <h5>Используемые технологии</h5>
+                    <ul>
+                        <li><strong>Backend:</strong> Python, Flask</li>
+                        <li><strong>База данных:</strong> SQLite</li>
+                        <li><strong>Frontend:</strong> HTML, CSS, JavaScript, Bootstrap</li>
+                        <li><strong>Анализ ошибок:</strong> OpenAI API</li>
+                        <li><strong>Выполнение кода:</strong> Изолированное выполнение пользовательского кода</li>
+                    </ul>
+
+                    <div class="text-center mt-4">
+                        <a href="{{ url_for('index') }}" class="btn btn-primary">
+                            <i class="fas fa-code"></i> Начать обучение
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

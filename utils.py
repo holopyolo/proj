@@ -5,7 +5,7 @@ import json
 import re
 from typing import Dict, Any, List, Optional
 from ai_helper import analyze_error, format_analysis_for_display
-from datetime import datetime
+from datetime import datetime, timedelta
 import ai_helper
 import traceback
 from flask import Markup
@@ -246,13 +246,13 @@ def format_datetime(dt):
     if not dt:
         return ""
     
-    now = datetime.datetime.now()
+    now = datetime.now()
     today = now.date()
     dt_date = dt.date() if hasattr(dt, 'date') else dt.date
     
     if dt_date == today:
         return f"Сегодня в {dt.strftime('%H:%M')}"
-    elif dt_date == today - datetime.timedelta(days=1):
+    elif dt_date == today - timedelta(days=1):
         return f"Вчера в {dt.strftime('%H:%M')}"
     else:
         return dt.strftime('%d.%m.%Y %H:%M') 

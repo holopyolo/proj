@@ -357,6 +357,8 @@ def submit_solution(problem_id):
         
         # Обрабатываем частичный успех или ошибку
         else:
+            error_analysis = None
+            
             # Если есть сообщение об ошибке, анализируем его
             if result.get('error'):
                 try:
@@ -369,13 +371,34 @@ def submit_solution(problem_id):
                     logger.error(f"Ошибка при анализе: {str(e)}")
                     logger.error(traceback.format_exc())
                     result['analysis'] = f'<div class="alert alert-danger">Ошибка при анализе: {str(e)}</div>'
+                    error_analysis = result['analysis']
             
-            # Сохраняем неудачное решение в базе данных
-            db.execute(
-                'INSERT INTO solutions (user_id, problem_id, code, status, error, submitted_at) VALUES (?, ?, ?, ?, ?, ?)',
-                (current_user.id, problem_id, user_code, 'error', result.get('error', ''), datetime.now())
-            )
-            db.commit()
+            # Проверяем наличие столбца 'output' и 'analysis'
+            try:
+                db.execute(
+                    'INSERT INTO solutions (user_id, problem_id, code, status, error, output, analysis, submitted_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+                    (current_user.id, problem_id, user_code, 'error', result.get('error', ''), 
+                     result.get('output', ''), error_analysis, datetime.now())
+                )
+                db.commit()
+            except sqlite3.OperationalError as e:
+                # Если столбцов нет, используем обычный запрос
+                if 'no column named output' in str(e) or 'no column named analysis' in str(e):
+                    db.execute(
+                        'INSERT INTO solutions (user_id, problem_id, code, status, error, submitted_at) VALUES (?, ?, ?, ?, ?, ?)',
+                        (current_user.id, problem_id, user_code, 'error', result.get('error', ''), datetime.now())
+                    )
+                    db.commit()
+                    
+                    # Сохраняем результаты в отдельном файле
+                    solution_id = db.execute('SELECT last_insert_rowid()').fetchone()[0]
+                    with open(f'solution_results_{solution_id}.json', 'w', encoding='utf-8') as f:
+                        json.dump({
+                            'output': result.get('output', ''),
+                            'analysis': error_analysis
+                        }, f, ensure_ascii=False)
+                else:
+                    raise
             
             return jsonify({
                 'status': 'error',
@@ -437,6 +460,17 @@ def run_tests(problem_id):
                 logger.error(traceback.format_exc())
                 result['analysis'] = f'<div class="alert alert-danger">Ошибка при анализе: {str(e)}</div>'
         
+        # Если пользователь авторизован, сохраняем результаты (но с пометкой 'test')
+        if current_user.is_authenticated:
+            status = 'success' if result.get('success', False) else 'error'
+            
+            db.execute(
+                'INSERT INTO solutions (user_id, problem_id, code, status, error, output, analysis, submitted_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+                (current_user.id, problem_id, user_code, status, result.get('error', ''), 
+                 result.get('output', ''), result.get('analysis', ''), datetime.now())
+            )
+            db.commit()
+        
         # Формируем сообщение о результатах
         message = 'Все тесты пройдены!' if result.get('success', False) else 'Тесты не пройдены.'
         
@@ -467,7 +501,7 @@ def my_solutions():
     
     # Получаем решения пользователя с информацией о задачах
     solutions = db.execute('''
-        SELECT s.*, p.title as problem_title, p.difficulty
+        SELECT s.*, p.title as problem_title, p.difficulty, p.topic
         FROM solutions s
         JOIN problems p ON s.problem_id = p.id
         WHERE s.user_id = ?
@@ -477,6 +511,92 @@ def my_solutions():
     return render_template('my_solutions.html', 
                           solutions=solutions,
                           format_datetime=format_datetime)
+
+@app.route('/solution_details/<int:solution_id>')
+@login_required
+def solution_details(solution_id):
+    """API для получения подробной информации о решении"""
+    db = get_db()
+    
+    # Получаем данные о решении
+    solution = db.execute('''
+        SELECT s.*, p.test_cases
+        FROM solutions s
+        JOIN problems p ON s.problem_id = p.id
+        WHERE s.id = ? AND s.user_id = ?
+    ''', (solution_id, current_user.id)).fetchone()
+    
+    if not solution:
+        return jsonify({'error': 'Solution not found or access denied'}), 404
+    
+    # Формируем ответ с данными о решении
+    result = {
+        'id': solution['id'],
+        'problem_id': solution['problem_id'],
+        'code': solution['code'],
+        'status': solution['status'],
+        'submitted_at': format_datetime(solution['submitted_at'])
+    }
+    
+    # Добавляем информацию об ошибке и результатах
+    if 'error' in solution and solution['error']:
+        result['error'] = solution['error']
+    
+    # Проверяем наличие столбца output
+    try:
+        if 'output' in solution and solution['output']:
+            result['output'] = solution['output']
+    except:
+        # Если столбца нет, пробуем загрузить из файла
+        try:
+            with open(f'solution_results_{solution_id}.json', 'r', encoding='utf-8') as f:
+                extra_data = json.load(f)
+                if 'output' in extra_data:
+                    result['output'] = extra_data['output']
+        except:
+            pass
+    
+    # Проверяем наличие столбца analysis
+    try:
+        if 'analysis' in solution and solution['analysis']:
+            result['analysis'] = solution['analysis']
+        # Если есть ошибка, но нет анализа, пробуем проанализировать её
+        elif 'error' in solution and solution['error'] and solution['status'] == 'error':
+            try:
+                # Пробуем загрузить из файла сначала
+                try:
+                    with open(f'solution_results_{solution_id}.json', 'r', encoding='utf-8') as f:
+                        extra_data = json.load(f)
+                        if 'analysis' in extra_data:
+                            result['analysis'] = extra_data['analysis']
+                            return jsonify(result)
+                except:
+                    pass
+                
+                # Если нет в файле, анализируем
+                test_cases = json.loads(solution['test_cases'])
+                error_analysis = analyze_error_with_llm(solution['code'], solution['error'], test_cases)
+                result['analysis'] = error_analysis
+                
+                # Пробуем сохранить, игнорируя ошибки
+                try:
+                    db.execute('UPDATE solutions SET analysis = ? WHERE id = ?', 
+                              (error_analysis, solution_id))
+                    db.commit()
+                except:
+                    # Сохраняем в файл
+                    with open(f'solution_results_{solution_id}.json', 'w', encoding='utf-8') as f:
+                        json.dump({
+                            'analysis': error_analysis,
+                            'output': result.get('output', '')
+                        }, f, ensure_ascii=False)
+            except Exception as e:
+                logger.error(f"Ошибка при анализе решения {solution_id}: {str(e)}")
+                logger.error(traceback.format_exc())
+    except:
+        pass
+    
+    return jsonify(result)
 
 @app.route('/add_problem', methods=['GET', 'POST'])
 @login_required

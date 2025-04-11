@@ -717,4 +717,17 @@ if __name__ == '__main__':
         except Exception as e:
             print(f"Ошибка при проверке базы данных: {str(e)}")
     
-    app.run(debug=True) 
+    # Получение настроек сервера из переменных окружения или использование значений по умолчанию
+    # Для продакшена используйте значения из env переменных для безопасности
+    host = os.getenv('FLASK_HOST', '0.0.0.0')  # 0.0.0.0 - слушать на всех интерфейсах
+    port = int(os.getenv('FLASK_PORT', 5000))
+    debug = os.getenv('FLASK_DEBUG', 'False').lower() == 'true'
+    
+    print(f"Запуск сервера на {host}:{port}, режим отладки: {debug}")
+    
+    # ПРИМЕЧАНИЕ: В продакшене рекомендуется:
+    # 1. Использовать WSGI-сервер (gunicorn, uWSGI) вместо встроенного Flask-сервера
+    # 2. Настроить Nginx/Apache как прокси перед Flask
+    # 3. Использовать HTTPS (через Let's Encrypt или другой SSL-сертификат)
+    # 4. Отключить режим debug
+    app.run(host=host, port=port, debug=debug) 

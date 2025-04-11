@@ -10,6 +10,7 @@ import ai_helper
 import traceback
 from flask import Markup
 import logging
+import sys
 
 # Настройка логирования
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -41,6 +42,12 @@ def run_code(code: str, test_cases: List[Dict] = None) -> Dict[str, Any]:
         'error': None
     }
     
+    # Определяем команду для запуска Python
+    python_cmd = determine_python_command()
+    if not python_cmd:
+        result['error'] = 'Не удалось найти интерпретатор Python на сервере. Обратитесь к администратору.'
+        return result
+    
     # Сохраняем код во временный файл
     with tempfile.NamedTemporaryFile(suffix='.py', delete=False, mode='w', encoding='utf-8') as tmp_file:
         tmp_file.write(code)
@@ -50,7 +57,7 @@ def run_code(code: str, test_cases: List[Dict] = None) -> Dict[str, Any]:
         # Если тесты не предоставлены, просто запускаем код
         if not test_cases:
             proc = subprocess.run(
-                ['python', code_path],
+                [python_cmd, code_path],
                 capture_output=True,
                 text=True,
                 timeout=10
@@ -74,7 +81,7 @@ def run_code(code: str, test_cases: List[Dict] = None) -> Dict[str, Any]:
             try:
                 # Запускаем тесты
                 proc = subprocess.run(
-                    ['python', test_path],
+                    [python_cmd, test_path],
                     capture_output=True,
                     text=True,
                     timeout=10
@@ -103,6 +110,27 @@ def run_code(code: str, test_cases: List[Dict] = None) -> Dict[str, Any]:
             os.unlink(code_path)
     
     return result
+
+def determine_python_command() -> str:
+    """
+    Определяет доступную команду интерпретатора Python в системе.
+    
+    Returns:
+        str: Команда для запуска Python или None, если интерпретатор не найден
+    """
+    # Список возможных команд для запуска Python
+    possible_commands = ['python3', 'python', 'py', sys.executable]
+    
+    for cmd in possible_commands:
+        try:
+            # Проверяем, доступна ли команда
+            subprocess.run([cmd, '--version'], capture_output=True, text=True)
+            return cmd
+        except (subprocess.SubprocessError, FileNotFoundError):
+            continue
+    
+    # Если ни одна команда не сработала, возвращаем путь к текущему интерпретатору
+    return sys.executable if os.path.exists(sys.executable) else None
 
 def find_failed_test_index(error_message: str) -> Optional[int]:
     """

@@ -16,9 +16,9 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(level
 logger = logging.getLogger(__name__)
 
 # Настройка прокси для Python в целом (urllib, requests и т.д.)
-PROXY_URL = "138.0.241.111:8000"
-PROXY_USER = "mVQEKQ"
-PROXY_PASS = "4pc5U7"
+PROXY_URL = "170.83.235.58:8000"
+PROXY_USER = "nUofNe"
+PROXY_PASS = "QVKw3Q"
 
 # Настройка прокси для системных запросов (влияет на все HTTP-клиенты)
 os.environ['HTTP_PROXY'] = f"http://{PROXY_USER}:{PROXY_PASS}@{PROXY_URL}"

@@ -1,0 +1,225 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>База данных &mdash; coding platform 1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=29a6c3e3"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Участие в разработке" href="../contributing.html" />
+    <link rel="prev" title="ai_helper - Модуль анализа ошибок с помощью AI" href="ai_helper.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            coding platform
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Содержание:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Установка</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../usage.html">Использование</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture.html">Архитектура</a></li>
+<li class="toctree-l1"><a class="reference internal" href="app.html">app - Основной модуль приложения</a></li>
+<li class="toctree-l1"><a class="reference internal" href="utils.html">utils - Модуль утилит</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ai_helper.html">ai_helper - Модуль анализа ошибок с помощью AI</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">База данных</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#id2">Схема базы данных</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#users">Таблица пользователей (users)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#problems">Таблица задач (problems)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#solutions">Таблица решений (solutions)</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#id3">Инициализация базы данных</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../contributing.html">Участие в разработке</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../changelog.html">История изменений</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">coding platform</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">База данных</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/modules/database.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="id1">
+<h1>База данных<a class="headerlink" href="#id1" title="Link to this heading"></a></h1>
+<p>Проект использует SQLite для хранения данных. Основные файлы, отвечающие за работу с базой данных:</p>
+<ul class="simple">
+<li><p><cite>schema.sql</cite> - схема базы данных</p></li>
+<li><p><cite>init_db.py</cite> - скрипт инициализации БД с примерами</p></li>
+</ul>
+<section id="id2">
+<h2>Схема базы данных<a class="headerlink" href="#id2" title="Link to this heading"></a></h2>
+<section id="users">
+<h3>Таблица пользователей (users)<a class="headerlink" href="#users" title="Link to this heading"></a></h3>
+<div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">CREATE</span><span class="w"> </span><span class="k">TABLE</span><span class="w"> </span><span class="n">users</span><span class="w"> </span><span class="p">(</span>
+<span class="w">    </span><span class="n">id</span><span class="w"> </span><span class="nb">INTEGER</span><span class="w"> </span><span class="k">PRIMARY</span><span class="w"> </span><span class="k">KEY</span><span class="w"> </span><span class="n">AUTOINCREMENT</span><span class="p">,</span>
+<span class="w">    </span><span class="n">username</span><span class="w"> </span><span class="nb">TEXT</span><span class="w"> </span><span class="k">UNIQUE</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span>
+<span class="w">    </span><span class="n">password</span><span class="w"> </span><span class="nb">TEXT</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span>
+<span class="w">    </span><span class="k">role</span><span class="w"> </span><span class="nb">TEXT</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="w"> </span><span class="k">DEFAULT</span><span class="w"> </span><span class="s1">&#39;user&#39;</span>
+<span class="p">);</span>
+</pre></div>
+</div>
+<p>Содержит информацию о пользователях системы:</p>
+<ul class="simple">
+<li><p><cite>id</cite> - уникальный идентификатор пользователя</p></li>
+<li><p><cite>username</cite> - имя пользователя (логин)</p></li>
+<li><p><cite>password</cite> - хешированный пароль</p></li>
+<li><p><cite>role</cite> - роль пользователя (user, teacher, admin)</p></li>
+</ul>
+</section>
+<section id="problems">
+<h3>Таблица задач (problems)<a class="headerlink" href="#problems" title="Link to this heading"></a></h3>
+<div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">CREATE</span><span class="w"> </span><span class="k">TABLE</span><span class="w"> </span><span class="n">problems</span><span class="w"> </span><span class="p">(</span>
+<span class="w">    </span><span class="n">id</span><span class="w"> </span><span class="nb">INTEGER</span><span class="w"> </span><span class="k">PRIMARY</span><span class="w"> </span><span class="k">KEY</span><span class="w"> </span><span class="n">AUTOINCREMENT</span><span class="p">,</span>
+<span class="w">    </span><span class="n">title</span><span class="w"> </span><span class="nb">TEXT</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span>
+<span class="w">    </span><span class="n">description</span><span class="w"> </span><span class="nb">TEXT</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span>
+<span class="w">    </span><span class="n">difficulty</span><span class="w"> </span><span class="nb">TEXT</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span>
+<span class="w">    </span><span class="n">topic</span><span class="w"> </span><span class="nb">TEXT</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span>
+<span class="w">    </span><span class="n">test_cases</span><span class="w"> </span><span class="nb">TEXT</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span>
+<span class="w">    </span><span class="n">created_at</span><span class="w"> </span><span class="k">TIMESTAMP</span><span class="w"> </span><span class="k">DEFAULT</span><span class="w"> </span><span class="k">CURRENT_TIMESTAMP</span>
+<span class="p">);</span>
+</pre></div>
+</div>
+<p>Содержит информацию о задачах:</p>
+<ul class="simple">
+<li><p><cite>id</cite> - уникальный идентификатор задачи</p></li>
+<li><p><cite>title</cite> - название задачи</p></li>
+<li><p><cite>description</cite> - описание задачи</p></li>
+<li><p><cite>difficulty</cite> - уровень сложности (easy, medium, hard)</p></li>
+<li><p><cite>topic</cite> - тема задачи</p></li>
+<li><p><cite>test_cases</cite> - JSON-строка с тестовыми случаями</p></li>
+<li><p><cite>created_at</cite> - время создания задачи</p></li>
+</ul>
+</section>
+<section id="solutions">
+<h3>Таблица решений (solutions)<a class="headerlink" href="#solutions" title="Link to this heading"></a></h3>
+<div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">CREATE</span><span class="w"> </span><span class="k">TABLE</span><span class="w"> </span><span class="n">solutions</span><span class="w"> </span><span class="p">(</span>
+<span class="w">    </span><span class="n">id</span><span class="w"> </span><span class="nb">INTEGER</span><span class="w"> </span><span class="k">PRIMARY</span><span class="w"> </span><span class="k">KEY</span><span class="w"> </span><span class="n">AUTOINCREMENT</span><span class="p">,</span>
+<span class="w">    </span><span class="n">user_id</span><span class="w"> </span><span class="nb">INTEGER</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span>
+<span class="w">    </span><span class="n">problem_id</span><span class="w"> </span><span class="nb">INTEGER</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span>
+<span class="w">    </span><span class="n">code</span><span class="w"> </span><span class="nb">TEXT</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span>
+<span class="w">    </span><span class="n">status</span><span class="w"> </span><span class="nb">TEXT</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span>
+<span class="w">    </span><span class="n">error_message</span><span class="w"> </span><span class="nb">TEXT</span><span class="p">,</span>
+<span class="w">    </span><span class="n">analysis</span><span class="w"> </span><span class="nb">TEXT</span><span class="p">,</span>
+<span class="w">    </span><span class="n">created_at</span><span class="w"> </span><span class="k">TIMESTAMP</span><span class="w"> </span><span class="k">DEFAULT</span><span class="w"> </span><span class="k">CURRENT_TIMESTAMP</span><span class="p">,</span>
+<span class="w">    </span><span class="k">FOREIGN</span><span class="w"> </span><span class="k">KEY</span><span class="w"> </span><span class="p">(</span><span class="n">user_id</span><span class="p">)</span><span class="w"> </span><span class="k">REFERENCES</span><span class="w"> </span><span class="n">users</span><span class="w"> </span><span class="p">(</span><span class="n">id</span><span class="p">),</span>
+<span class="w">    </span><span class="k">FOREIGN</span><span class="w"> </span><span class="k">KEY</span><span class="w"> </span><span class="p">(</span><span class="n">problem_id</span><span class="p">)</span><span class="w"> </span><span class="k">REFERENCES</span><span class="w"> </span><span class="n">problems</span><span class="w"> </span><span class="p">(</span><span class="n">id</span><span class="p">)</span>
+<span class="p">);</span>
+</pre></div>
+</div>
+<p>Содержит информацию о решениях пользователей:</p>
+<ul class="simple">
+<li><p><cite>id</cite> - уникальный идентификатор решения</p></li>
+<li><p><cite>user_id</cite> - идентификатор пользователя</p></li>
+<li><p><cite>problem_id</cite> - идентификатор задачи</p></li>
+<li><p><cite>code</cite> - код решения</p></li>
+<li><p><cite>status</cite> - статус решения (passed, failed)</p></li>
+<li><p><cite>error_message</cite> - сообщение об ошибке</p></li>
+<li><p><cite>analysis</cite> - анализ ошибки от LLM</p></li>
+<li><p><cite>created_at</cite> - время создания решения</p></li>
+</ul>
+</section>
+</section>
+<section id="id3">
+<h2>Инициализация базы данных<a class="headerlink" href="#id3" title="Link to this heading"></a></h2>
+<p>Инициализация базы данных выполняется через скрипт <cite>init_db.py</cite>, который:</p>
+<ol class="arabic simple">
+<li><p>Создает таблицы согласно схеме в <cite>schema.sql</cite></p></li>
+<li><p>Добавляет учетную запись администратора</p></li>
+<li><p>Добавляет примеры задач разной сложности</p></li>
+</ol>
+<p>Примеры задач включают:</p>
+<ul class="simple">
+<li><p><strong>Легкие задачи</strong>:
+* Сумма чисел
+* Поиск максимального числа</p></li>
+<li><p><strong>Задачи средней сложности</strong>:
+* Проверка на палиндром
+* Числа Фибоначчи</p></li>
+<li><p><strong>Сложные задачи</strong>:
+* Сортировка пузырьком
+* Реализация структуры данных Стек</p></li>
+</ul>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="ai_helper.html" class="btn btn-neutral float-left" title="ai_helper - Модуль анализа ошибок с помощью AI" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../contributing.html" class="btn btn-neutral float-right" title="Участие в разработке" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, t sarikov kalmykov sharibov volkov.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

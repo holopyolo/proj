@@ -1,0 +1,911 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>app &mdash; coding platform 1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=29a6c3e3"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            coding platform
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Содержание:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Установка</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../usage.html">Использование</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture.html">Архитектура</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../modules/app.html">app - Основной модуль приложения</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../modules/utils.html">utils - Модуль утилит</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../modules/ai_helper.html">ai_helper - Модуль анализа ошибок с помощью AI</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../modules/database.html">База данных</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../contributing.html">Участие в разработке</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../changelog.html">История изменений</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">coding platform</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">Module code</a></li>
+      <li class="breadcrumb-item active">app</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for app</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">flask</span> <span class="kn">import</span> <span class="n">Flask</span><span class="p">,</span> <span class="n">render_template</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="n">redirect</span><span class="p">,</span> <span class="n">url_for</span><span class="p">,</span> <span class="n">flash</span><span class="p">,</span> <span class="n">jsonify</span><span class="p">,</span> <span class="n">g</span>
+<span class="kn">from</span> <span class="nn">flask_login</span> <span class="kn">import</span> <span class="n">LoginManager</span><span class="p">,</span> <span class="n">UserMixin</span><span class="p">,</span> <span class="n">login_user</span><span class="p">,</span> <span class="n">login_required</span><span class="p">,</span> <span class="n">logout_user</span><span class="p">,</span> <span class="n">current_user</span>
+<span class="kn">from</span> <span class="nn">werkzeug.security</span> <span class="kn">import</span> <span class="n">generate_password_hash</span><span class="p">,</span> <span class="n">check_password_hash</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">sqlite3</span>
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span>
+<span class="kn">import</span> <span class="nn">subprocess</span>
+<span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">from</span> <span class="nn">dotenv</span> <span class="kn">import</span> <span class="n">load_dotenv</span>
+<span class="kn">from</span> <span class="nn">utils</span> <span class="kn">import</span> <span class="n">run_code</span><span class="p">,</span> <span class="n">analyze_error_with_llm</span><span class="p">,</span> <span class="n">validate_test_cases</span><span class="p">,</span> <span class="n">format_datetime</span>
+<span class="kn">from</span> <span class="nn">decorators</span> <span class="kn">import</span> <span class="n">teacher_required</span><span class="p">,</span> <span class="n">admin_required</span>
+<span class="kn">from</span> <span class="nn">init_db</span> <span class="kn">import</span> <span class="n">init_db_with_samples</span><span class="p">,</span> <span class="n">SAMPLE_PROBLEMS</span>
+<span class="kn">import</span> <span class="nn">hashlib</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">traceback</span>
+
+<span class="c1"># Настройка логирования</span>
+<span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s1">&#39;</span><span class="si">%(asctime)s</span><span class="s1"> - </span><span class="si">%(name)s</span><span class="s1"> - </span><span class="si">%(levelname)s</span><span class="s1"> - </span><span class="si">%(message)s</span><span class="s1">&#39;</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+<span class="n">load_dotenv</span><span class="p">()</span>
+
+<span class="n">app</span> <span class="o">=</span> <span class="n">Flask</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+<span class="n">app</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;SECRET_KEY&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s1">&#39;SECRET_KEY&#39;</span><span class="p">,</span> <span class="s1">&#39;your-secret-key&#39;</span><span class="p">)</span>
+<span class="n">app</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;DATABASE&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;coding_platform.db&#39;</span>
+
+<span class="n">login_manager</span> <span class="o">=</span> <span class="n">LoginManager</span><span class="p">()</span>
+<span class="n">login_manager</span><span class="o">.</span><span class="n">init_app</span><span class="p">(</span><span class="n">app</span><span class="p">)</span>
+<span class="n">login_manager</span><span class="o">.</span><span class="n">login_view</span> <span class="o">=</span> <span class="s1">&#39;login&#39;</span>
+
+<span class="c1"># Функции для работы с БД</span>
+<div class="viewcode-block" id="get_db">
+<a class="viewcode-back" href="../modules/app.html#app.get_db">[docs]</a>
+<span class="k">def</span> <span class="nf">get_db</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Возвращает соединение с базой данных&quot;&quot;&quot;</span>
+    <span class="n">db</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">g</span><span class="p">,</span> <span class="s1">&#39;_database&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">db</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">db</span> <span class="o">=</span> <span class="n">g</span><span class="o">.</span><span class="n">_database</span> <span class="o">=</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span>
+                <span class="n">app</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;DATABASE&#39;</span><span class="p">],</span>
+                <span class="n">detect_types</span><span class="o">=</span><span class="n">sqlite3</span><span class="o">.</span><span class="n">PARSE_DECLTYPES</span>
+            <span class="p">)</span>
+            <span class="n">db</span><span class="o">.</span><span class="n">row_factory</span> <span class="o">=</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">Row</span>
+        <span class="k">except</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">OperationalError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="c1"># Если не удалось подключиться к основной базе, попробуем альтернативную</span>
+            <span class="k">if</span> <span class="s1">&#39;database is locked&#39;</span> <span class="ow">in</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span> <span class="ow">and</span> <span class="n">app</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;DATABASE&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;coding_platform.db&#39;</span><span class="p">:</span>
+                <span class="n">alt_db</span> <span class="o">=</span> <span class="s1">&#39;coding_platform_new.db&#39;</span>
+                <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">alt_db</span><span class="p">):</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Основная база данных заблокирована. Пробуем использовать альтернативную базу </span><span class="si">{</span><span class="n">alt_db</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                    <span class="n">app</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;DATABASE&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">alt_db</span>
+                    <span class="n">db</span> <span class="o">=</span> <span class="n">g</span><span class="o">.</span><span class="n">_database</span> <span class="o">=</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span>
+                        <span class="n">app</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;DATABASE&#39;</span><span class="p">],</span>
+                        <span class="n">detect_types</span><span class="o">=</span><span class="n">sqlite3</span><span class="o">.</span><span class="n">PARSE_DECLTYPES</span>
+                    <span class="p">)</span>
+                    <span class="n">db</span><span class="o">.</span><span class="n">row_factory</span> <span class="o">=</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">Row</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="c1"># Если альтернативной нет, создаем новую базу данных</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Создаем новую базу данных...&quot;</span><span class="p">)</span>
+                        <span class="n">db</span> <span class="o">=</span> <span class="n">g</span><span class="o">.</span><span class="n">_database</span> <span class="o">=</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span>
+                            <span class="n">alt_db</span><span class="p">,</span>
+                            <span class="n">detect_types</span><span class="o">=</span><span class="n">sqlite3</span><span class="o">.</span><span class="n">PARSE_DECLTYPES</span>
+                        <span class="p">)</span>
+                        <span class="n">db</span><span class="o">.</span><span class="n">row_factory</span> <span class="o">=</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">Row</span>
+                        <span class="n">app</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;DATABASE&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">alt_db</span>
+                        
+                        <span class="c1"># Инициализируем новую базу данных</span>
+                        <span class="n">init_db_with_samples</span><span class="p">()</span>
+                    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+                        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Не удалось создать новую базу данных: </span><span class="si">{</span><span class="n">err</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                        <span class="k">raise</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span>  <span class="c1"># Если ошибка не связана с блокировкой, пробрасываем исключение дальше</span>
+    <span class="k">return</span> <span class="n">db</span></div>
+
+
+<div class="viewcode-block" id="close_db">
+<a class="viewcode-back" href="../modules/app.html#app.close_db">[docs]</a>
+<span class="k">def</span> <span class="nf">close_db</span><span class="p">(</span><span class="n">e</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Закрывает соединение с базой данных по завершении запроса&quot;&quot;&quot;</span>
+    <span class="n">db</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">g</span><span class="p">,</span> <span class="s1">&#39;_database&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">db</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">db</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="init_db">
+<a class="viewcode-back" href="../modules/app.html#app.init_db">[docs]</a>
+<span class="k">def</span> <span class="nf">init_db</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Инициализирует базу данных с примерами задач&quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="c1"># Вместо отдельной инициализации используем функцию с примерами</span>
+        <span class="k">return</span> <span class="n">init_db_with_samples</span><span class="p">()</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Ошибка при инициализации базы данных: </span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">False</span></div>
+
+
+<div class="viewcode-block" id="teardown_db">
+<a class="viewcode-back" href="../modules/app.html#app.teardown_db">[docs]</a>
+<span class="nd">@app</span><span class="o">.</span><span class="n">teardown_appcontext</span>
+<span class="k">def</span> <span class="nf">teardown_db</span><span class="p">(</span><span class="n">e</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="n">close_db</span><span class="p">()</span></div>
+
+
+<span class="c1"># Класс для работы с Flask-Login</span>
+<div class="viewcode-block" id="User">
+<a class="viewcode-back" href="../modules/app.html#app.User">[docs]</a>
+<span class="k">class</span> <span class="nc">User</span><span class="p">(</span><span class="n">UserMixin</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">id</span><span class="p">,</span> <span class="n">username</span><span class="p">,</span> <span class="n">role</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">id</span> <span class="o">=</span> <span class="nb">id</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">username</span> <span class="o">=</span> <span class="n">username</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">role</span> <span class="o">=</span> <span class="n">role</span></div>
+
+
+<div class="viewcode-block" id="load_user">
+<a class="viewcode-back" href="../modules/app.html#app.load_user">[docs]</a>
+<span class="nd">@login_manager</span><span class="o">.</span><span class="n">user_loader</span>
+<span class="k">def</span> <span class="nf">load_user</span><span class="p">(</span><span class="n">user_id</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Загружает пользователя из базы данных&quot;&quot;&quot;</span>
+    <span class="n">db</span> <span class="o">=</span> <span class="n">get_db</span><span class="p">()</span>
+    <span class="n">user</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s1">&#39;SELECT * FROM users WHERE id = ?&#39;</span><span class="p">,</span> <span class="p">(</span><span class="n">user_id</span><span class="p">,))</span><span class="o">.</span><span class="n">fetchone</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">user</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">User</span><span class="p">(</span><span class="n">user</span><span class="p">[</span><span class="s1">&#39;id&#39;</span><span class="p">],</span> <span class="n">user</span><span class="p">[</span><span class="s1">&#39;username&#39;</span><span class="p">],</span> <span class="n">user</span><span class="p">[</span><span class="s1">&#39;role&#39;</span><span class="p">])</span>
+    <span class="k">return</span> <span class="kc">None</span></div>
+
+
+<span class="c1"># Модели данных</span>
+<div class="viewcode-block" id="get_all_problems">
+<a class="viewcode-back" href="../modules/app.html#app.get_all_problems">[docs]</a>
+<span class="k">def</span> <span class="nf">get_all_problems</span><span class="p">():</span>
+    <span class="n">db</span> <span class="o">=</span> <span class="n">get_db</span><span class="p">()</span>
+    <span class="n">problems</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s1">&#39;SELECT * FROM problems&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">problems</span></div>
+
+
+<div class="viewcode-block" id="get_problem">
+<a class="viewcode-back" href="../modules/app.html#app.get_problem">[docs]</a>
+<span class="k">def</span> <span class="nf">get_problem</span><span class="p">(</span><span class="n">problem_id</span><span class="p">):</span>
+    <span class="n">db</span> <span class="o">=</span> <span class="n">get_db</span><span class="p">()</span>
+    <span class="n">problem</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s1">&#39;SELECT * FROM problems WHERE id = ?&#39;</span><span class="p">,</span> <span class="p">(</span><span class="n">problem_id</span><span class="p">,))</span><span class="o">.</span><span class="n">fetchone</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">problem</span></div>
+
+
+<div class="viewcode-block" id="add_problem_to_db">
+<a class="viewcode-back" href="../modules/app.html#app.add_problem_to_db">[docs]</a>
+<span class="k">def</span> <span class="nf">add_problem_to_db</span><span class="p">(</span><span class="n">title</span><span class="p">,</span> <span class="n">description</span><span class="p">,</span> <span class="n">topic</span><span class="p">,</span> <span class="n">difficulty</span><span class="p">,</span> <span class="n">test_cases</span><span class="p">,</span> <span class="n">initial_code</span><span class="p">,</span> <span class="n">created_by</span><span class="p">):</span>
+    <span class="n">db</span> <span class="o">=</span> <span class="n">get_db</span><span class="p">()</span>
+    <span class="n">db</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+        <span class="s1">&#39;INSERT INTO problems (title, description, topic, difficulty, test_cases, initial_code, created_by) VALUES (?, ?, ?, ?, ?, ?, ?)&#39;</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">title</span><span class="p">,</span> <span class="n">description</span><span class="p">,</span> <span class="n">topic</span><span class="p">,</span> <span class="n">difficulty</span><span class="p">,</span> <span class="n">test_cases</span><span class="p">,</span> <span class="n">initial_code</span><span class="p">,</span> <span class="n">created_by</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="n">db</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="delete_problem">
+<a class="viewcode-back" href="../modules/app.html#app.delete_problem">[docs]</a>
+<span class="k">def</span> <span class="nf">delete_problem</span><span class="p">(</span><span class="n">problem_id</span><span class="p">):</span>
+    <span class="n">db</span> <span class="o">=</span> <span class="n">get_db</span><span class="p">()</span>
+    <span class="n">db</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s1">&#39;DELETE FROM problems WHERE id = ?&#39;</span><span class="p">,</span> <span class="p">(</span><span class="n">problem_id</span><span class="p">,))</span>
+    <span class="n">db</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="update_problem">
+<a class="viewcode-back" href="../modules/app.html#app.update_problem">[docs]</a>
+<span class="k">def</span> <span class="nf">update_problem</span><span class="p">(</span><span class="n">problem_id</span><span class="p">,</span> <span class="n">title</span><span class="p">,</span> <span class="n">description</span><span class="p">,</span> <span class="n">topic</span><span class="p">,</span> <span class="n">difficulty</span><span class="p">,</span> <span class="n">test_cases</span><span class="p">,</span> <span class="n">initial_code</span><span class="p">):</span>
+    <span class="n">db</span> <span class="o">=</span> <span class="n">get_db</span><span class="p">()</span>
+    <span class="n">db</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+        <span class="s1">&#39;UPDATE problems SET title = ?, description = ?, topic = ?, difficulty = ?, test_cases = ?, initial_code = ? WHERE id = ?&#39;</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">title</span><span class="p">,</span> <span class="n">description</span><span class="p">,</span> <span class="n">topic</span><span class="p">,</span> <span class="n">difficulty</span><span class="p">,</span> <span class="n">test_cases</span><span class="p">,</span> <span class="n">initial_code</span><span class="p">,</span> <span class="n">problem_id</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="n">db</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="get_user_solutions">
+<a class="viewcode-back" href="../modules/app.html#app.get_user_solutions">[docs]</a>
+<span class="k">def</span> <span class="nf">get_user_solutions</span><span class="p">(</span><span class="n">user_id</span><span class="p">):</span>
+    <span class="n">db</span> <span class="o">=</span> <span class="n">get_db</span><span class="p">()</span>
+    <span class="n">solutions</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s1">&#39;&#39;&#39;</span>
+<span class="s1">        SELECT s.*, p.title, p.topic, p.difficulty </span>
+<span class="s1">        FROM solutions s</span>
+<span class="s1">        JOIN problems p ON s.problem_id = p.id</span>
+<span class="s1">        WHERE s.user_id = ?</span>
+<span class="s1">        ORDER BY s.submitted_at DESC</span>
+<span class="s1">    &#39;&#39;&#39;</span><span class="p">,</span> <span class="p">(</span><span class="n">user_id</span><span class="p">,))</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">solutions</span></div>
+
+
+<div class="viewcode-block" id="add_solution">
+<a class="viewcode-back" href="../modules/app.html#app.add_solution">[docs]</a>
+<span class="k">def</span> <span class="nf">add_solution</span><span class="p">(</span><span class="n">user_id</span><span class="p">,</span> <span class="n">problem_id</span><span class="p">,</span> <span class="n">code</span><span class="p">,</span> <span class="n">status</span><span class="p">,</span> <span class="n">error_message</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="n">db</span> <span class="o">=</span> <span class="n">get_db</span><span class="p">()</span>
+    <span class="n">db</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+        <span class="s1">&#39;INSERT INTO solutions (user_id, problem_id, code, status, submitted_at, error_message) VALUES (?, ?, ?, ?, ?, ?)&#39;</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">user_id</span><span class="p">,</span> <span class="n">problem_id</span><span class="p">,</span> <span class="n">code</span><span class="p">,</span> <span class="n">status</span><span class="p">,</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(),</span> <span class="n">error_message</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="n">db</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span></div>
+
+
+<span class="c1"># Маршруты</span>
+<div class="viewcode-block" id="index">
+<a class="viewcode-back" href="../modules/app.html#app.index">[docs]</a>
+<span class="nd">@app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">index</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Главная страница с списком задач&quot;&quot;&quot;</span>
+    <span class="n">db</span> <span class="o">=</span> <span class="n">get_db</span><span class="p">()</span>
+    
+    <span class="c1"># Отладочная информация</span>
+    <span class="n">count</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s1">&#39;SELECT COUNT(*) FROM problems&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">fetchone</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Количество задач в базе данных при загрузке главной страницы: </span><span class="si">{</span><span class="n">count</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    
+    <span class="c1"># Получаем доступные темы и уровни сложности</span>
+    <span class="n">topics</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s1">&#39;SELECT DISTINCT topic FROM problems ORDER BY topic&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
+    <span class="n">difficulties</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s1">&#39;SELECT DISTINCT difficulty FROM problems ORDER BY CASE difficulty &#39;</span> <span class="o">+</span>
+                             <span class="s1">&#39;WHEN &quot;Легкая&quot; THEN 1 &#39;</span> <span class="o">+</span>
+                             <span class="s1">&#39;WHEN &quot;Средняя&quot; THEN 2 &#39;</span> <span class="o">+</span>
+                             <span class="s1">&#39;WHEN &quot;Сложная&quot; THEN 3 &#39;</span> <span class="o">+</span>
+                             <span class="s1">&#39;ELSE 4 END&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
+    
+    <span class="c1"># Отладка выбранных фильтров</span>
+    <span class="n">topic</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;topic&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+    <span class="n">difficulty</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;difficulty&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+    <span class="n">search</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;search&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Фильтры: тема=&#39;</span><span class="si">{</span><span class="n">topic</span><span class="si">}</span><span class="s2">&#39;, сложность=&#39;</span><span class="si">{</span><span class="n">difficulty</span><span class="si">}</span><span class="s2">&#39;, поиск=&#39;</span><span class="si">{</span><span class="n">search</span><span class="si">}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
+    
+    <span class="c1"># Базовый запрос</span>
+    <span class="n">query</span> <span class="o">=</span> <span class="s1">&#39;SELECT * FROM problems WHERE 1=1&#39;</span>
+    <span class="n">params</span> <span class="o">=</span> <span class="p">[]</span>
+    
+    <span class="c1"># Добавляем условия фильтрации</span>
+    <span class="k">if</span> <span class="n">topic</span><span class="p">:</span>
+        <span class="n">query</span> <span class="o">+=</span> <span class="s1">&#39; AND topic = ?&#39;</span>
+        <span class="n">params</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">topic</span><span class="p">)</span>
+    
+    <span class="k">if</span> <span class="n">difficulty</span><span class="p">:</span>
+        <span class="n">query</span> <span class="o">+=</span> <span class="s1">&#39; AND difficulty = ?&#39;</span>
+        <span class="n">params</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">difficulty</span><span class="p">)</span>
+    
+    <span class="k">if</span> <span class="n">search</span><span class="p">:</span>
+        <span class="n">query</span> <span class="o">+=</span> <span class="s1">&#39; AND (title LIKE ? OR description LIKE ?)&#39;</span>
+        <span class="n">params</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="s1">&#39;%&#39;</span> <span class="o">+</span> <span class="n">search</span> <span class="o">+</span> <span class="s1">&#39;%&#39;</span><span class="p">,</span> <span class="s1">&#39;%&#39;</span> <span class="o">+</span> <span class="n">search</span> <span class="o">+</span> <span class="s1">&#39;%&#39;</span><span class="p">])</span>
+    
+    <span class="c1"># Выполняем запрос с фильтрацией</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;SQL запрос: </span><span class="si">{</span><span class="n">query</span><span class="si">}</span><span class="s2">, параметры: </span><span class="si">{</span><span class="n">params</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">problems</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">query</span> <span class="o">+</span> <span class="s1">&#39; ORDER BY difficulty, title&#39;</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
+    
+    <span class="c1"># Отладка результатов</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Найдено задач с заданными фильтрами: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">problems</span><span class="p">)</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">problems</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="mi">0</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">problems</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">problems</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;ID: </span><span class="si">{</span><span class="n">p</span><span class="p">[</span><span class="s1">&#39;id&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">, Название: </span><span class="si">{</span><span class="n">p</span><span class="p">[</span><span class="s1">&#39;title&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">, Тема: </span><span class="si">{</span><span class="n">p</span><span class="p">[</span><span class="s1">&#39;topic&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">, Сложность: </span><span class="si">{</span><span class="n">p</span><span class="p">[</span><span class="s1">&#39;difficulty&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    
+    <span class="k">return</span> <span class="n">render_template</span><span class="p">(</span><span class="s1">&#39;index.html&#39;</span><span class="p">,</span> 
+                          <span class="n">problems</span><span class="o">=</span><span class="n">problems</span><span class="p">,</span> 
+                          <span class="n">topics</span><span class="o">=</span><span class="n">topics</span><span class="p">,</span> 
+                          <span class="n">difficulties</span><span class="o">=</span><span class="n">difficulties</span><span class="p">,</span>
+                          <span class="n">selected_topic</span><span class="o">=</span><span class="n">topic</span><span class="p">,</span>
+                          <span class="n">selected_difficulty</span><span class="o">=</span><span class="n">difficulty</span><span class="p">,</span>
+                          <span class="n">search</span><span class="o">=</span><span class="n">search</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="login">
+<a class="viewcode-back" href="../modules/app.html#app.login">[docs]</a>
+<span class="nd">@app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s1">&#39;/login&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">,</span> <span class="s1">&#39;POST&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">login</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Страница входа в систему&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">current_user</span><span class="o">.</span><span class="n">is_authenticated</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="n">url_for</span><span class="p">(</span><span class="s1">&#39;index&#39;</span><span class="p">))</span>
+    
+    <span class="k">if</span> <span class="n">request</span><span class="o">.</span><span class="n">method</span> <span class="o">==</span> <span class="s1">&#39;POST&#39;</span><span class="p">:</span>
+        <span class="n">username</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">form</span><span class="p">[</span><span class="s1">&#39;username&#39;</span><span class="p">]</span>
+        <span class="n">password</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">form</span><span class="p">[</span><span class="s1">&#39;password&#39;</span><span class="p">]</span>
+        
+        <span class="n">db</span> <span class="o">=</span> <span class="n">get_db</span><span class="p">()</span>
+        <span class="n">user</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s1">&#39;SELECT * FROM users WHERE username = ?&#39;</span><span class="p">,</span> <span class="p">(</span><span class="n">username</span><span class="p">,))</span><span class="o">.</span><span class="n">fetchone</span><span class="p">()</span>
+        
+        <span class="k">if</span> <span class="n">user</span><span class="p">:</span>
+            <span class="c1"># Проверяем пароль с обоими методами хеширования для совместимости</span>
+            <span class="k">if</span> <span class="n">check_password_hash</span><span class="p">(</span><span class="n">user</span><span class="p">[</span><span class="s1">&#39;password_hash&#39;</span><span class="p">],</span> <span class="n">password</span><span class="p">)</span> <span class="ow">or</span> <span class="n">user</span><span class="p">[</span><span class="s1">&#39;password_hash&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">hashlib</span><span class="o">.</span><span class="n">sha256</span><span class="p">(</span><span class="n">password</span><span class="o">.</span><span class="n">encode</span><span class="p">())</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">():</span>
+                <span class="n">user_obj</span> <span class="o">=</span> <span class="n">User</span><span class="p">(</span><span class="n">user</span><span class="p">[</span><span class="s1">&#39;id&#39;</span><span class="p">],</span> <span class="n">user</span><span class="p">[</span><span class="s1">&#39;username&#39;</span><span class="p">],</span> <span class="n">user</span><span class="p">[</span><span class="s1">&#39;role&#39;</span><span class="p">])</span>
+                <span class="n">login_user</span><span class="p">(</span><span class="n">user_obj</span><span class="p">)</span>
+                <span class="n">flash</span><span class="p">(</span><span class="s1">&#39;Вы успешно вошли в систему!&#39;</span><span class="p">,</span> <span class="s1">&#39;success&#39;</span><span class="p">)</span>
+                
+                <span class="n">next_page</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;next&#39;</span><span class="p">)</span>
+                <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="n">next_page</span> <span class="ow">or</span> <span class="n">url_for</span><span class="p">(</span><span class="s1">&#39;index&#39;</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">flash</span><span class="p">(</span><span class="s1">&#39;Неверное имя пользователя или пароль&#39;</span><span class="p">,</span> <span class="s1">&#39;danger&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">flash</span><span class="p">(</span><span class="s1">&#39;Неверное имя пользователя или пароль&#39;</span><span class="p">,</span> <span class="s1">&#39;danger&#39;</span><span class="p">)</span>
+    
+    <span class="k">return</span> <span class="n">render_template</span><span class="p">(</span><span class="s1">&#39;login.html&#39;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="logout">
+<a class="viewcode-back" href="../modules/app.html#app.logout">[docs]</a>
+<span class="nd">@app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s1">&#39;/logout&#39;</span><span class="p">)</span>
+<span class="nd">@login_required</span>
+<span class="k">def</span> <span class="nf">logout</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Выход из системы&quot;&quot;&quot;</span>
+    <span class="n">logout_user</span><span class="p">()</span>
+    <span class="n">flash</span><span class="p">(</span><span class="s1">&#39;Вы вышли из системы&#39;</span><span class="p">,</span> <span class="s1">&#39;info&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="n">url_for</span><span class="p">(</span><span class="s1">&#39;index&#39;</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="register">
+<a class="viewcode-back" href="../modules/app.html#app.register">[docs]</a>
+<span class="nd">@app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s1">&#39;/register&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">,</span> <span class="s1">&#39;POST&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">register</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Страница регистрации&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">current_user</span><span class="o">.</span><span class="n">is_authenticated</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="n">url_for</span><span class="p">(</span><span class="s1">&#39;index&#39;</span><span class="p">))</span>
+    
+    <span class="k">if</span> <span class="n">request</span><span class="o">.</span><span class="n">method</span> <span class="o">==</span> <span class="s1">&#39;POST&#39;</span><span class="p">:</span>
+        <span class="n">username</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">form</span><span class="p">[</span><span class="s1">&#39;username&#39;</span><span class="p">]</span>
+        <span class="n">email</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">form</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;email&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+        <span class="n">password</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">form</span><span class="p">[</span><span class="s1">&#39;password&#39;</span><span class="p">]</span>
+        <span class="n">password_confirm</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">form</span><span class="p">[</span><span class="s1">&#39;confirm_password&#39;</span><span class="p">]</span>
+        
+        <span class="n">db</span> <span class="o">=</span> <span class="n">get_db</span><span class="p">()</span>
+        
+        <span class="c1"># Проверка существования пользователя</span>
+        <span class="n">existing_user</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s1">&#39;SELECT * FROM users WHERE username = ?&#39;</span><span class="p">,</span> <span class="p">(</span><span class="n">username</span><span class="p">,))</span><span class="o">.</span><span class="n">fetchone</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">existing_user</span><span class="p">:</span>
+            <span class="n">flash</span><span class="p">(</span><span class="s1">&#39;Пользователь с таким именем уже существует&#39;</span><span class="p">,</span> <span class="s1">&#39;danger&#39;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">render_template</span><span class="p">(</span><span class="s1">&#39;register.html&#39;</span><span class="p">)</span>
+        
+        <span class="c1"># Проверка email, если он указан</span>
+        <span class="k">if</span> <span class="n">email</span><span class="p">:</span>
+            <span class="n">existing_email</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s1">&#39;SELECT * FROM users WHERE email = ?&#39;</span><span class="p">,</span> <span class="p">(</span><span class="n">email</span><span class="p">,))</span><span class="o">.</span><span class="n">fetchone</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">existing_email</span><span class="p">:</span>
+                <span class="n">flash</span><span class="p">(</span><span class="s1">&#39;Пользователь с таким email уже существует&#39;</span><span class="p">,</span> <span class="s1">&#39;danger&#39;</span><span class="p">)</span>
+                <span class="k">return</span> <span class="n">render_template</span><span class="p">(</span><span class="s1">&#39;register.html&#39;</span><span class="p">)</span>
+        
+        <span class="c1"># Проверка пароля</span>
+        <span class="k">if</span> <span class="n">password</span> <span class="o">!=</span> <span class="n">password_confirm</span><span class="p">:</span>
+            <span class="n">flash</span><span class="p">(</span><span class="s1">&#39;Пароли не совпадают&#39;</span><span class="p">,</span> <span class="s1">&#39;danger&#39;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">render_template</span><span class="p">(</span><span class="s1">&#39;register.html&#39;</span><span class="p">)</span>
+        
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">password</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">4</span><span class="p">:</span>
+            <span class="n">flash</span><span class="p">(</span><span class="s1">&#39;Пароль должен содержать не менее 4 символов&#39;</span><span class="p">,</span> <span class="s1">&#39;danger&#39;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">render_template</span><span class="p">(</span><span class="s1">&#39;register.html&#39;</span><span class="p">)</span>
+        
+        <span class="c1"># Создание нового пользователя</span>
+        <span class="n">hashed_password</span> <span class="o">=</span> <span class="n">hashlib</span><span class="o">.</span><span class="n">sha256</span><span class="p">(</span><span class="n">password</span><span class="o">.</span><span class="n">encode</span><span class="p">())</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()</span>
+        <span class="n">db</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+            <span class="s1">&#39;INSERT INTO users (username, email, password_hash, role) VALUES (?, ?, ?, ?)&#39;</span><span class="p">,</span>
+            <span class="p">(</span><span class="n">username</span><span class="p">,</span> <span class="n">email</span><span class="p">,</span> <span class="n">hashed_password</span><span class="p">,</span> <span class="s1">&#39;user&#39;</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="n">db</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+        
+        <span class="n">flash</span><span class="p">(</span><span class="s1">&#39;Регистрация успешна! Теперь вы можете войти в систему.&#39;</span><span class="p">,</span> <span class="s1">&#39;success&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="n">url_for</span><span class="p">(</span><span class="s1">&#39;login&#39;</span><span class="p">))</span>
+    
+    <span class="k">return</span> <span class="n">render_template</span><span class="p">(</span><span class="s1">&#39;register.html&#39;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="problem">
+<a class="viewcode-back" href="../modules/app.html#app.problem">[docs]</a>
+<span class="nd">@app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s1">&#39;/problem/&lt;int:problem_id&gt;&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">,</span> <span class="s1">&#39;POST&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">problem</span><span class="p">(</span><span class="n">problem_id</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Страница задачи с возможностью отправки решения&quot;&quot;&quot;</span>
+    <span class="n">db</span> <span class="o">=</span> <span class="n">get_db</span><span class="p">()</span>
+    <span class="n">problem</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s1">&#39;SELECT * FROM problems WHERE id = ?&#39;</span><span class="p">,</span> <span class="p">(</span><span class="n">problem_id</span><span class="p">,))</span><span class="o">.</span><span class="n">fetchone</span><span class="p">()</span>
+    
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">problem</span><span class="p">:</span>
+        <span class="n">flash</span><span class="p">(</span><span class="s1">&#39;Задача не найдена&#39;</span><span class="p">,</span> <span class="s1">&#39;danger&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="n">url_for</span><span class="p">(</span><span class="s1">&#39;index&#39;</span><span class="p">))</span>
+    
+    <span class="c1"># История решений пользователя для этой задачи</span>
+    <span class="n">user_solutions</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">if</span> <span class="n">current_user</span><span class="o">.</span><span class="n">is_authenticated</span><span class="p">:</span>
+        <span class="n">user_solutions</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+            <span class="s1">&#39;SELECT * FROM solutions WHERE user_id = ? AND problem_id = ? ORDER BY submitted_at DESC&#39;</span><span class="p">,</span>
+            <span class="p">(</span><span class="n">current_user</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">problem_id</span><span class="p">)</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
+    
+    <span class="k">return</span> <span class="n">render_template</span><span class="p">(</span><span class="s1">&#39;problem.html&#39;</span><span class="p">,</span> 
+                          <span class="n">problem</span><span class="o">=</span><span class="n">problem</span><span class="p">,</span> 
+                          <span class="n">user_solutions</span><span class="o">=</span><span class="n">user_solutions</span><span class="p">,</span>
+                          <span class="n">format_datetime</span><span class="o">=</span><span class="n">format_datetime</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="submit_solution">
+<a class="viewcode-back" href="../modules/app.html#app.submit_solution">[docs]</a>
+<span class="nd">@app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s1">&#39;/submit_solution/&lt;int:problem_id&gt;&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;POST&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">submit_solution</span><span class="p">(</span><span class="n">problem_id</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Обрабатывает отправку решения пользователя для конкретной задачи.&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">current_user</span><span class="o">.</span><span class="n">is_authenticated</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="n">url_for</span><span class="p">(</span><span class="s1">&#39;login&#39;</span><span class="p">))</span>
+    
+    <span class="n">user_code</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">form</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;code&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+    
+    <span class="c1"># Получаем задачу из базы данных</span>
+    <span class="n">db</span> <span class="o">=</span> <span class="n">get_db</span><span class="p">()</span>
+    <span class="n">problem</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s1">&#39;SELECT * FROM problems WHERE id = ?&#39;</span><span class="p">,</span> <span class="p">(</span><span class="n">problem_id</span><span class="p">,))</span><span class="o">.</span><span class="n">fetchone</span><span class="p">()</span>
+    
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">problem</span><span class="p">:</span>
+        <span class="n">flash</span><span class="p">(</span><span class="s1">&#39;Задача не найдена!&#39;</span><span class="p">,</span> <span class="s1">&#39;danger&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="n">url_for</span><span class="p">(</span><span class="s1">&#39;tasks&#39;</span><span class="p">))</span>
+    
+    <span class="c1"># Получаем тестовые случаи для задачи</span>
+    <span class="n">test_cases</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">problem</span><span class="p">[</span><span class="s1">&#39;test_cases&#39;</span><span class="p">])</span>
+    
+    <span class="c1"># Запускаем код и проверяем результаты</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">run_code</span><span class="p">(</span><span class="n">user_code</span><span class="p">,</span> <span class="n">test_cases</span><span class="p">)</span>
+        
+        <span class="c1"># Обрабатываем успешное выполнение</span>
+        <span class="k">if</span> <span class="n">result</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;success&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
+            <span class="c1"># Сохраняем решение в базе данных</span>
+            <span class="n">db</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+                <span class="s1">&#39;INSERT INTO solutions (user_id, problem_id, code, status, output, submitted_at) VALUES (?, ?, ?, ?, ?, ?)&#39;</span><span class="p">,</span>
+                <span class="p">(</span><span class="n">current_user</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">problem_id</span><span class="p">,</span> <span class="n">user_code</span><span class="p">,</span> <span class="s1">&#39;success&#39;</span><span class="p">,</span> <span class="n">result</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;output&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">),</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">())</span>
+            <span class="p">)</span>
+            <span class="n">db</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+            
+            <span class="k">return</span> <span class="n">jsonify</span><span class="p">({</span>
+                <span class="s1">&#39;status&#39;</span><span class="p">:</span> <span class="s1">&#39;success&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;message&#39;</span><span class="p">:</span> <span class="s1">&#39;Поздравляем! Ваше решение успешно прошло все тесты.&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;output&#39;</span><span class="p">:</span> <span class="n">result</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;output&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+            <span class="p">})</span>
+        
+        <span class="c1"># Обрабатываем частичный успех или ошибку</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">error_analysis</span> <span class="o">=</span> <span class="kc">None</span>
+            
+            <span class="c1"># Если есть сообщение об ошибке, анализируем его</span>
+            <span class="k">if</span> <span class="n">result</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;error&#39;</span><span class="p">):</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="c1"># Анализируем ошибку</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Анализируем ошибку в коде...&quot;</span><span class="p">)</span>
+                    <span class="n">error_analysis</span> <span class="o">=</span> <span class="n">analyze_error_with_llm</span><span class="p">(</span><span class="n">user_code</span><span class="p">,</span> <span class="n">result</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;error&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">),</span> <span class="n">test_cases</span><span class="p">)</span>
+                    <span class="n">result</span><span class="p">[</span><span class="s1">&#39;analysis&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">error_analysis</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Анализ ошибки успешно выполнен&quot;</span><span class="p">)</span>
+                <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Ошибка при анализе: </span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">traceback</span><span class="o">.</span><span class="n">format_exc</span><span class="p">())</span>
+                    <span class="n">result</span><span class="p">[</span><span class="s1">&#39;analysis&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;&lt;div class=&quot;alert alert-danger&quot;&gt;Ошибка при анализе: </span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="si">}</span><span class="s1">&lt;/div&gt;&#39;</span>
+                    <span class="n">error_analysis</span> <span class="o">=</span> <span class="n">result</span><span class="p">[</span><span class="s1">&#39;analysis&#39;</span><span class="p">]</span>
+            
+            <span class="c1"># Сохраняем неудачное решение в базе данных</span>
+            <span class="n">db</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+                <span class="s1">&#39;INSERT INTO solutions (user_id, problem_id, code, status, error, output, analysis, submitted_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)&#39;</span><span class="p">,</span>
+                <span class="p">(</span><span class="n">current_user</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">problem_id</span><span class="p">,</span> <span class="n">user_code</span><span class="p">,</span> <span class="s1">&#39;error&#39;</span><span class="p">,</span> <span class="n">result</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;error&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">),</span> 
+                 <span class="n">result</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;output&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">),</span> <span class="n">error_analysis</span><span class="p">,</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">())</span>
+            <span class="p">)</span>
+            <span class="n">db</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+            
+            <span class="k">return</span> <span class="n">jsonify</span><span class="p">({</span>
+                <span class="s1">&#39;status&#39;</span><span class="p">:</span> <span class="s1">&#39;error&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;message&#39;</span><span class="p">:</span> <span class="s1">&#39;Решение не прошло тесты.&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;output&#39;</span><span class="p">:</span> <span class="n">result</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;output&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">),</span>
+                <span class="s1">&#39;error&#39;</span><span class="p">:</span> <span class="n">result</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;error&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">),</span>
+                <span class="s1">&#39;analysis&#39;</span><span class="p">:</span> <span class="n">result</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;analysis&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+            <span class="p">})</span>
+    
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="c1"># Логируем непредвиденную ошибку</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Необработанная ошибка при проверке решения: </span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">traceback</span><span class="o">.</span><span class="n">format_exc</span><span class="p">())</span>
+        
+        <span class="c1"># Сохраняем информацию об ошибке</span>
+        <span class="n">db</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+            <span class="s1">&#39;INSERT INTO solutions (user_id, problem_id, code, status, error, submitted_at) VALUES (?, ?, ?, ?, ?, ?)&#39;</span><span class="p">,</span>
+            <span class="p">(</span><span class="n">current_user</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">problem_id</span><span class="p">,</span> <span class="n">user_code</span><span class="p">,</span> <span class="s1">&#39;error&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">),</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">())</span>
+        <span class="p">)</span>
+        <span class="n">db</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+        
+        <span class="k">return</span> <span class="n">jsonify</span><span class="p">({</span>
+            <span class="s1">&#39;status&#39;</span><span class="p">:</span> <span class="s1">&#39;error&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;message&#39;</span><span class="p">:</span> <span class="s1">&#39;Произошла ошибка при обработке вашего решения.&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;error&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+        <span class="p">})</span></div>
+
+
+<div class="viewcode-block" id="run_tests">
+<a class="viewcode-back" href="../modules/app.html#app.run_tests">[docs]</a>
+<span class="nd">@app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s1">&#39;/run_tests/&lt;int:problem_id&gt;&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;POST&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">run_tests</span><span class="p">(</span><span class="n">problem_id</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Запускает тесты для решения, не сохраняя результат.&quot;&quot;&quot;</span>
+    <span class="n">user_code</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">form</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;code&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+    
+    <span class="c1"># Получаем задачу и тестовые случаи</span>
+    <span class="n">db</span> <span class="o">=</span> <span class="n">get_db</span><span class="p">()</span>
+    <span class="n">problem</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s1">&#39;SELECT * FROM problems WHERE id = ?&#39;</span><span class="p">,</span> <span class="p">(</span><span class="n">problem_id</span><span class="p">,))</span><span class="o">.</span><span class="n">fetchone</span><span class="p">()</span>
+    
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">problem</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">jsonify</span><span class="p">({</span>
+            <span class="s1">&#39;status&#39;</span><span class="p">:</span> <span class="s1">&#39;error&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;message&#39;</span><span class="p">:</span> <span class="s1">&#39;Задача не найдена!&#39;</span>
+        <span class="p">})</span>
+    
+    <span class="n">test_cases</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">problem</span><span class="p">[</span><span class="s1">&#39;test_cases&#39;</span><span class="p">])</span>
+    
+    <span class="c1"># Запускаем код и проверяем результаты</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">run_code</span><span class="p">(</span><span class="n">user_code</span><span class="p">,</span> <span class="n">test_cases</span><span class="p">)</span>
+        
+        <span class="c1"># Если есть ошибка, анализируем её</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">result</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;success&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span> <span class="ow">and</span> <span class="n">result</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;error&#39;</span><span class="p">):</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="c1"># Анализируем ошибку</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Анализируем ошибку в коде (запуск тестов)...&quot;</span><span class="p">)</span>
+                <span class="n">error_analysis</span> <span class="o">=</span> <span class="n">analyze_error_with_llm</span><span class="p">(</span><span class="n">user_code</span><span class="p">,</span> <span class="n">result</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;error&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">),</span> <span class="n">test_cases</span><span class="p">)</span>
+                <span class="n">result</span><span class="p">[</span><span class="s1">&#39;analysis&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">error_analysis</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Анализ ошибки успешно выполнен&quot;</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Ошибка при анализе: </span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">traceback</span><span class="o">.</span><span class="n">format_exc</span><span class="p">())</span>
+                <span class="n">result</span><span class="p">[</span><span class="s1">&#39;analysis&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;&lt;div class=&quot;alert alert-danger&quot;&gt;Ошибка при анализе: </span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="si">}</span><span class="s1">&lt;/div&gt;&#39;</span>
+        
+        <span class="c1"># Если пользователь авторизован, сохраняем результаты (но с пометкой &#39;test&#39;)</span>
+        <span class="k">if</span> <span class="n">current_user</span><span class="o">.</span><span class="n">is_authenticated</span><span class="p">:</span>
+            <span class="n">status</span> <span class="o">=</span> <span class="s1">&#39;success&#39;</span> <span class="k">if</span> <span class="n">result</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;success&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span> <span class="k">else</span> <span class="s1">&#39;error&#39;</span>
+            
+            <span class="n">db</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+                <span class="s1">&#39;INSERT INTO solutions (user_id, problem_id, code, status, error, output, analysis, submitted_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)&#39;</span><span class="p">,</span>
+                <span class="p">(</span><span class="n">current_user</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">problem_id</span><span class="p">,</span> <span class="n">user_code</span><span class="p">,</span> <span class="n">status</span><span class="p">,</span> <span class="n">result</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;error&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">),</span> 
+                 <span class="n">result</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;output&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">),</span> <span class="n">result</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;analysis&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">),</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">())</span>
+            <span class="p">)</span>
+            <span class="n">db</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+        
+        <span class="c1"># Формируем сообщение о результатах</span>
+        <span class="n">message</span> <span class="o">=</span> <span class="s1">&#39;Все тесты пройдены!&#39;</span> <span class="k">if</span> <span class="n">result</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;success&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span> <span class="k">else</span> <span class="s1">&#39;Тесты не пройдены.&#39;</span>
+        
+        <span class="k">return</span> <span class="n">jsonify</span><span class="p">({</span>
+            <span class="s1">&#39;status&#39;</span><span class="p">:</span> <span class="s1">&#39;success&#39;</span> <span class="k">if</span> <span class="n">result</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;success&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span> <span class="k">else</span> <span class="s1">&#39;error&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;message&#39;</span><span class="p">:</span> <span class="n">message</span><span class="p">,</span>
+            <span class="s1">&#39;output&#39;</span><span class="p">:</span> <span class="n">result</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;output&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">),</span>
+            <span class="s1">&#39;error&#39;</span><span class="p">:</span> <span class="n">result</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;error&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">),</span>
+            <span class="s1">&#39;analysis&#39;</span><span class="p">:</span> <span class="n">result</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;analysis&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+        <span class="p">})</span>
+    
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="c1"># Логируем ошибку</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Необработанная ошибка при запуске тестов: </span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">traceback</span><span class="o">.</span><span class="n">format_exc</span><span class="p">())</span>
+        
+        <span class="k">return</span> <span class="n">jsonify</span><span class="p">({</span>
+            <span class="s1">&#39;status&#39;</span><span class="p">:</span> <span class="s1">&#39;error&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;message&#39;</span><span class="p">:</span> <span class="s1">&#39;Произошла ошибка при запуске тестов.&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;error&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+        <span class="p">})</span></div>
+
+
+<div class="viewcode-block" id="my_solutions">
+<a class="viewcode-back" href="../modules/app.html#app.my_solutions">[docs]</a>
+<span class="nd">@app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s1">&#39;/my_solutions&#39;</span><span class="p">)</span>
+<span class="nd">@login_required</span>
+<span class="k">def</span> <span class="nf">my_solutions</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Страница с историей решений пользователя&quot;&quot;&quot;</span>
+    <span class="n">db</span> <span class="o">=</span> <span class="n">get_db</span><span class="p">()</span>
+    
+    <span class="c1"># Получаем решения пользователя с информацией о задачах</span>
+    <span class="n">solutions</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s1">&#39;&#39;&#39;</span>
+<span class="s1">        SELECT s.*, p.title as problem_title, p.difficulty, p.topic</span>
+<span class="s1">        FROM solutions s</span>
+<span class="s1">        JOIN problems p ON s.problem_id = p.id</span>
+<span class="s1">        WHERE s.user_id = ?</span>
+<span class="s1">        ORDER BY s.submitted_at DESC</span>
+<span class="s1">    &#39;&#39;&#39;</span><span class="p">,</span> <span class="p">(</span><span class="n">current_user</span><span class="o">.</span><span class="n">id</span><span class="p">,))</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
+    
+    <span class="k">return</span> <span class="n">render_template</span><span class="p">(</span><span class="s1">&#39;my_solutions.html&#39;</span><span class="p">,</span> 
+                          <span class="n">solutions</span><span class="o">=</span><span class="n">solutions</span><span class="p">,</span>
+                          <span class="n">format_datetime</span><span class="o">=</span><span class="n">format_datetime</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="solution_details">
+<a class="viewcode-back" href="../modules/app.html#app.solution_details">[docs]</a>
+<span class="nd">@app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s1">&#39;/solution_details/&lt;int:solution_id&gt;&#39;</span><span class="p">)</span>
+<span class="nd">@login_required</span>
+<span class="k">def</span> <span class="nf">solution_details</span><span class="p">(</span><span class="n">solution_id</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;API для получения подробной информации о решении&quot;&quot;&quot;</span>
+    <span class="n">db</span> <span class="o">=</span> <span class="n">get_db</span><span class="p">()</span>
+    
+    <span class="c1"># Получаем данные о решении</span>
+    <span class="n">solution</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s1">&#39;&#39;&#39;</span>
+<span class="s1">        SELECT s.*, p.test_cases</span>
+<span class="s1">        FROM solutions s</span>
+<span class="s1">        JOIN problems p ON s.problem_id = p.id</span>
+<span class="s1">        WHERE s.id = ? AND s.user_id = ?</span>
+<span class="s1">    &#39;&#39;&#39;</span><span class="p">,</span> <span class="p">(</span><span class="n">solution_id</span><span class="p">,</span> <span class="n">current_user</span><span class="o">.</span><span class="n">id</span><span class="p">))</span><span class="o">.</span><span class="n">fetchone</span><span class="p">()</span>
+    
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">solution</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">jsonify</span><span class="p">({</span><span class="s1">&#39;error&#39;</span><span class="p">:</span> <span class="s1">&#39;Solution not found or access denied&#39;</span><span class="p">}),</span> <span class="mi">404</span>
+    
+    <span class="c1"># Формируем ответ с данными о решении</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="n">solution</span><span class="p">[</span><span class="s1">&#39;id&#39;</span><span class="p">],</span>
+        <span class="s1">&#39;problem_id&#39;</span><span class="p">:</span> <span class="n">solution</span><span class="p">[</span><span class="s1">&#39;problem_id&#39;</span><span class="p">],</span>
+        <span class="s1">&#39;code&#39;</span><span class="p">:</span> <span class="n">solution</span><span class="p">[</span><span class="s1">&#39;code&#39;</span><span class="p">],</span>
+        <span class="s1">&#39;status&#39;</span><span class="p">:</span> <span class="n">solution</span><span class="p">[</span><span class="s1">&#39;status&#39;</span><span class="p">],</span>
+        <span class="s1">&#39;submitted_at&#39;</span><span class="p">:</span> <span class="n">format_datetime</span><span class="p">(</span><span class="n">solution</span><span class="p">[</span><span class="s1">&#39;submitted_at&#39;</span><span class="p">])</span>
+    <span class="p">}</span>
+    
+    <span class="c1"># Добавляем информацию об ошибке и результатах</span>
+    <span class="k">if</span> <span class="n">solution</span><span class="p">[</span><span class="s1">&#39;error&#39;</span><span class="p">]:</span>
+        <span class="n">result</span><span class="p">[</span><span class="s1">&#39;error&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">solution</span><span class="p">[</span><span class="s1">&#39;error&#39;</span><span class="p">]</span>
+    
+    <span class="k">if</span> <span class="n">solution</span><span class="p">[</span><span class="s1">&#39;output&#39;</span><span class="p">]:</span>
+        <span class="n">result</span><span class="p">[</span><span class="s1">&#39;output&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">solution</span><span class="p">[</span><span class="s1">&#39;output&#39;</span><span class="p">]</span>
+    
+    <span class="c1"># Если есть анализ ошибки, добавляем его</span>
+    <span class="k">if</span> <span class="n">solution</span><span class="p">[</span><span class="s1">&#39;analysis&#39;</span><span class="p">]:</span>
+        <span class="n">result</span><span class="p">[</span><span class="s1">&#39;analysis&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">solution</span><span class="p">[</span><span class="s1">&#39;analysis&#39;</span><span class="p">]</span>
+    <span class="c1"># Если есть ошибка, но нет анализа, пробуем проанализировать её</span>
+    <span class="k">elif</span> <span class="n">solution</span><span class="p">[</span><span class="s1">&#39;error&#39;</span><span class="p">]</span> <span class="ow">and</span> <span class="n">solution</span><span class="p">[</span><span class="s1">&#39;status&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;error&#39;</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">test_cases</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">solution</span><span class="p">[</span><span class="s1">&#39;test_cases&#39;</span><span class="p">])</span>
+            <span class="n">error_analysis</span> <span class="o">=</span> <span class="n">analyze_error_with_llm</span><span class="p">(</span><span class="n">solution</span><span class="p">[</span><span class="s1">&#39;code&#39;</span><span class="p">],</span> <span class="n">solution</span><span class="p">[</span><span class="s1">&#39;error&#39;</span><span class="p">],</span> <span class="n">test_cases</span><span class="p">)</span>
+            <span class="n">result</span><span class="p">[</span><span class="s1">&#39;analysis&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">error_analysis</span>
+            
+            <span class="c1"># Сохраняем анализ в базу для будущего использования</span>
+            <span class="n">db</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s1">&#39;UPDATE solutions SET analysis = ? WHERE id = ?&#39;</span><span class="p">,</span> 
+                      <span class="p">(</span><span class="n">error_analysis</span><span class="p">,</span> <span class="n">solution_id</span><span class="p">))</span>
+            <span class="n">db</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Ошибка при анализе решения </span><span class="si">{</span><span class="n">solution_id</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">traceback</span><span class="o">.</span><span class="n">format_exc</span><span class="p">())</span>
+    
+    <span class="k">return</span> <span class="n">jsonify</span><span class="p">(</span><span class="n">result</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="add_problem">
+<a class="viewcode-back" href="../modules/app.html#app.add_problem">[docs]</a>
+<span class="nd">@app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s1">&#39;/add_problem&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">,</span> <span class="s1">&#39;POST&#39;</span><span class="p">])</span>
+<span class="nd">@login_required</span>
+<span class="nd">@teacher_required</span>
+<span class="k">def</span> <span class="nf">add_problem</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Страница добавления новой задачи&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">request</span><span class="o">.</span><span class="n">method</span> <span class="o">==</span> <span class="s1">&#39;POST&#39;</span><span class="p">:</span>
+        <span class="n">title</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">form</span><span class="p">[</span><span class="s1">&#39;title&#39;</span><span class="p">]</span>
+        <span class="n">description</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">form</span><span class="p">[</span><span class="s1">&#39;description&#39;</span><span class="p">]</span>
+        <span class="n">topic</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">form</span><span class="p">[</span><span class="s1">&#39;topic&#39;</span><span class="p">]</span>
+        <span class="n">difficulty</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">form</span><span class="p">[</span><span class="s1">&#39;difficulty&#39;</span><span class="p">]</span>
+        <span class="n">test_cases</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">form</span><span class="p">[</span><span class="s1">&#39;test_cases&#39;</span><span class="p">]</span>
+        <span class="n">initial_code</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">form</span><span class="p">[</span><span class="s1">&#39;initial_code&#39;</span><span class="p">]</span>
+        
+        <span class="c1"># Проверяем формат тестовых случаев</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">test_cases</span><span class="p">)</span>
+        <span class="k">except</span> <span class="n">json</span><span class="o">.</span><span class="n">JSONDecodeError</span><span class="p">:</span>
+            <span class="n">flash</span><span class="p">(</span><span class="s1">&#39;Ошибка в формате тестовых случаев. Проверьте JSON-формат.&#39;</span><span class="p">,</span> <span class="s1">&#39;danger&#39;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">render_template</span><span class="p">(</span><span class="s1">&#39;add_problem.html&#39;</span><span class="p">,</span> 
+                                  <span class="n">title</span><span class="o">=</span><span class="n">title</span><span class="p">,</span> 
+                                  <span class="n">description</span><span class="o">=</span><span class="n">description</span><span class="p">,</span>
+                                  <span class="n">topic</span><span class="o">=</span><span class="n">topic</span><span class="p">,</span>
+                                  <span class="n">difficulty</span><span class="o">=</span><span class="n">difficulty</span><span class="p">,</span>
+                                  <span class="n">test_cases</span><span class="o">=</span><span class="n">test_cases</span><span class="p">,</span>
+                                  <span class="n">initial_code</span><span class="o">=</span><span class="n">initial_code</span><span class="p">)</span>
+        
+        <span class="c1"># Добавление задачи в базу данных</span>
+        <span class="n">db</span> <span class="o">=</span> <span class="n">get_db</span><span class="p">()</span>
+        <span class="n">db</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+            <span class="s1">&#39;INSERT INTO problems (title, description, topic, difficulty, test_cases, initial_code, created_by) VALUES (?, ?, ?, ?, ?, ?, ?)&#39;</span><span class="p">,</span>
+            <span class="p">(</span><span class="n">title</span><span class="p">,</span> <span class="n">description</span><span class="p">,</span> <span class="n">topic</span><span class="p">,</span> <span class="n">difficulty</span><span class="p">,</span> <span class="n">test_cases</span><span class="p">,</span> <span class="n">initial_code</span><span class="p">,</span> <span class="n">current_user</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="n">db</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+        
+        <span class="n">flash</span><span class="p">(</span><span class="s1">&#39;Задача успешно добавлена!&#39;</span><span class="p">,</span> <span class="s1">&#39;success&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="n">url_for</span><span class="p">(</span><span class="s1">&#39;index&#39;</span><span class="p">))</span>
+    
+    <span class="k">return</span> <span class="n">render_template</span><span class="p">(</span><span class="s1">&#39;add_problem.html&#39;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="edit_problem">
+<a class="viewcode-back" href="../modules/app.html#app.edit_problem">[docs]</a>
+<span class="nd">@app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s1">&#39;/edit_problem/&lt;int:problem_id&gt;&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">,</span> <span class="s1">&#39;POST&#39;</span><span class="p">])</span>
+<span class="nd">@login_required</span>
+<span class="nd">@teacher_required</span>
+<span class="k">def</span> <span class="nf">edit_problem</span><span class="p">(</span><span class="n">problem_id</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Страница редактирования задачи&quot;&quot;&quot;</span>
+    <span class="n">db</span> <span class="o">=</span> <span class="n">get_db</span><span class="p">()</span>
+    <span class="n">problem</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s1">&#39;SELECT * FROM problems WHERE id = ?&#39;</span><span class="p">,</span> <span class="p">(</span><span class="n">problem_id</span><span class="p">,))</span><span class="o">.</span><span class="n">fetchone</span><span class="p">()</span>
+    
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">problem</span><span class="p">:</span>
+        <span class="n">flash</span><span class="p">(</span><span class="s1">&#39;Задача не найдена&#39;</span><span class="p">,</span> <span class="s1">&#39;danger&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="n">url_for</span><span class="p">(</span><span class="s1">&#39;index&#39;</span><span class="p">))</span>
+    
+    <span class="c1"># Проверяем права доступа (администраторы могут редактировать любые задачи,</span>
+    <span class="c1"># учителя - только свои)</span>
+    <span class="k">if</span> <span class="n">current_user</span><span class="o">.</span><span class="n">role</span> <span class="o">!=</span> <span class="s1">&#39;admin&#39;</span> <span class="ow">and</span> <span class="n">problem</span><span class="p">[</span><span class="s1">&#39;created_by&#39;</span><span class="p">]</span> <span class="o">!=</span> <span class="n">current_user</span><span class="o">.</span><span class="n">id</span><span class="p">:</span>
+        <span class="n">flash</span><span class="p">(</span><span class="s1">&#39;У вас нет прав для редактирования этой задачи&#39;</span><span class="p">,</span> <span class="s1">&#39;danger&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="n">url_for</span><span class="p">(</span><span class="s1">&#39;index&#39;</span><span class="p">))</span>
+    
+    <span class="k">if</span> <span class="n">request</span><span class="o">.</span><span class="n">method</span> <span class="o">==</span> <span class="s1">&#39;POST&#39;</span><span class="p">:</span>
+        <span class="n">title</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">form</span><span class="p">[</span><span class="s1">&#39;title&#39;</span><span class="p">]</span>
+        <span class="n">description</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">form</span><span class="p">[</span><span class="s1">&#39;description&#39;</span><span class="p">]</span>
+        <span class="n">topic</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">form</span><span class="p">[</span><span class="s1">&#39;topic&#39;</span><span class="p">]</span>
+        <span class="n">difficulty</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">form</span><span class="p">[</span><span class="s1">&#39;difficulty&#39;</span><span class="p">]</span>
+        <span class="n">test_cases</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">form</span><span class="p">[</span><span class="s1">&#39;test_cases&#39;</span><span class="p">]</span>
+        <span class="n">initial_code</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">form</span><span class="p">[</span><span class="s1">&#39;initial_code&#39;</span><span class="p">]</span>
+        
+        <span class="c1"># Проверяем формат тестовых случаев</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">test_cases</span><span class="p">)</span>
+        <span class="k">except</span> <span class="n">json</span><span class="o">.</span><span class="n">JSONDecodeError</span><span class="p">:</span>
+            <span class="n">flash</span><span class="p">(</span><span class="s1">&#39;Ошибка в формате тестовых случаев. Проверьте JSON-формат.&#39;</span><span class="p">,</span> <span class="s1">&#39;danger&#39;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">render_template</span><span class="p">(</span><span class="s1">&#39;edit_problem.html&#39;</span><span class="p">,</span> <span class="n">problem</span><span class="o">=</span><span class="n">problem</span><span class="p">)</span>
+        
+        <span class="c1"># Обновление задачи в базе данных</span>
+        <span class="n">db</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+            <span class="s1">&#39;UPDATE problems SET title = ?, description = ?, topic = ?, difficulty = ?, test_cases = ?, initial_code = ? WHERE id = ?&#39;</span><span class="p">,</span>
+            <span class="p">(</span><span class="n">title</span><span class="p">,</span> <span class="n">description</span><span class="p">,</span> <span class="n">topic</span><span class="p">,</span> <span class="n">difficulty</span><span class="p">,</span> <span class="n">test_cases</span><span class="p">,</span> <span class="n">initial_code</span><span class="p">,</span> <span class="n">problem_id</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="n">db</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+        
+        <span class="n">flash</span><span class="p">(</span><span class="s1">&#39;Задача успешно обновлена!&#39;</span><span class="p">,</span> <span class="s1">&#39;success&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="n">url_for</span><span class="p">(</span><span class="s1">&#39;problem&#39;</span><span class="p">,</span> <span class="n">problem_id</span><span class="o">=</span><span class="n">problem_id</span><span class="p">))</span>
+    
+    <span class="k">return</span> <span class="n">render_template</span><span class="p">(</span><span class="s1">&#39;edit_problem.html&#39;</span><span class="p">,</span> <span class="n">problem</span><span class="o">=</span><span class="n">problem</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="delete_problem_route">
+<a class="viewcode-back" href="../modules/app.html#app.delete_problem_route">[docs]</a>
+<span class="nd">@app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s1">&#39;/delete_problem/&lt;int:problem_id&gt;&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;POST&#39;</span><span class="p">])</span>
+<span class="nd">@login_required</span>
+<span class="nd">@admin_required</span>
+<span class="k">def</span> <span class="nf">delete_problem_route</span><span class="p">(</span><span class="n">problem_id</span><span class="p">):</span>
+    <span class="n">problem</span> <span class="o">=</span> <span class="n">get_problem</span><span class="p">(</span><span class="n">problem_id</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">problem</span><span class="p">:</span>
+        <span class="n">flash</span><span class="p">(</span><span class="s1">&#39;Задача не найдена&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="n">url_for</span><span class="p">(</span><span class="s1">&#39;index&#39;</span><span class="p">))</span>
+    
+    <span class="n">delete_problem</span><span class="p">(</span><span class="n">problem_id</span><span class="p">)</span>
+    
+    <span class="n">flash</span><span class="p">(</span><span class="s1">&#39;Задача успешно удалена&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="n">url_for</span><span class="p">(</span><span class="s1">&#39;index&#39;</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="initialize_samples">
+<a class="viewcode-back" href="../modules/app.html#app.initialize_samples">[docs]</a>
+<span class="nd">@app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s1">&#39;/admin/initialize_samples&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">,</span> <span class="s1">&#39;POST&#39;</span><span class="p">])</span>
+<span class="nd">@login_required</span>
+<span class="nd">@admin_required</span>
+<span class="k">def</span> <span class="nf">initialize_samples</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Инициализация базы данных с примерами задач&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">request</span><span class="o">.</span><span class="n">method</span> <span class="o">==</span> <span class="s1">&#39;POST&#39;</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="c1"># Закрываем текущее соединение с базой данных</span>
+            <span class="n">db</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">g</span><span class="p">,</span> <span class="s1">&#39;_database&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">db</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">db</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+                <span class="n">g</span><span class="o">.</span><span class="n">_database</span> <span class="o">=</span> <span class="kc">None</span>
+            
+            <span class="c1"># Вызываем функцию инициализации из init_db.py</span>
+            <span class="n">success</span> <span class="o">=</span> <span class="n">init_db_with_samples</span><span class="p">()</span>
+            
+            <span class="k">if</span> <span class="n">success</span><span class="p">:</span>
+                <span class="n">flash</span><span class="p">(</span><span class="s1">&#39;База данных успешно инициализирована с примерами задач!&#39;</span><span class="p">,</span> <span class="s1">&#39;success&#39;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">flash</span><span class="p">(</span><span class="s1">&#39;Ошибка при инициализации базы данных. Проверьте лог сервера.&#39;</span><span class="p">,</span> <span class="s1">&#39;danger&#39;</span><span class="p">)</span>
+                
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">flash</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Ошибка при инициализации базы данных: </span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="s1">&#39;danger&#39;</span><span class="p">)</span>
+        
+        <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="n">url_for</span><span class="p">(</span><span class="s1">&#39;index&#39;</span><span class="p">))</span>
+    
+    <span class="k">return</span> <span class="n">render_template</span><span class="p">(</span><span class="s1">&#39;initialize_samples.html&#39;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="about">
+<a class="viewcode-back" href="../modules/app.html#app.about">[docs]</a>
+<span class="nd">@app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s1">&#39;/about&#39;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">about</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Страница с информацией о проекте&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">render_template</span><span class="p">(</span><span class="s1">&#39;about.html&#39;</span><span class="p">)</span></div>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="c1"># Проверяем, существует ли база данных, если нет - создаем и инициализируем с примерами задач</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">app</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;DATABASE&#39;</span><span class="p">]):</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;База данных не найдена. Инициализируем с примерами задач...&quot;</span><span class="p">)</span>
+        <span class="k">with</span> <span class="n">app</span><span class="o">.</span><span class="n">app_context</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">init_db</span><span class="p">():</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;База данных создана и инициализирована с примерами задач.&quot;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Ошибка при инициализации базы данных с примерами.&quot;</span><span class="p">)</span>
+                <span class="c1"># Проверяем, не была ли создана альтернативная база данных</span>
+                <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="s1">&#39;coding_platform_new.db&#39;</span><span class="p">):</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Найдена альтернативная база данных. Используем её.&quot;</span><span class="p">)</span>
+                    <span class="n">app</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;DATABASE&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;coding_platform_new.db&#39;</span>
+    
+    <span class="c1"># Проверяем количество задач в базе данных при запуске</span>
+    <span class="k">with</span> <span class="n">app</span><span class="o">.</span><span class="n">app_context</span><span class="p">():</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">db</span> <span class="o">=</span> <span class="n">get_db</span><span class="p">()</span>
+            <span class="n">count</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s1">&#39;SELECT COUNT(*) FROM problems&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">fetchone</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Количество задач в базе данных: </span><span class="si">{</span><span class="n">count</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            
+            <span class="c1"># Выводим список задач для отладки</span>
+            <span class="n">problems</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s1">&#39;SELECT id, title, topic, difficulty FROM problems&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">problems</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Список задач в базе данных:&quot;</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">problems</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;ID: </span><span class="si">{</span><span class="n">p</span><span class="p">[</span><span class="s1">&#39;id&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">, Название: </span><span class="si">{</span><span class="n">p</span><span class="p">[</span><span class="s1">&#39;title&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">, Тема: </span><span class="si">{</span><span class="n">p</span><span class="p">[</span><span class="s1">&#39;topic&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">, Сложность: </span><span class="si">{</span><span class="n">p</span><span class="p">[</span><span class="s1">&#39;difficulty&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;В базе данных нет задач.&quot;</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Ошибка при проверке базы данных: </span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    
+    <span class="c1"># Запускаем приложение на всех интерфейсах (0.0.0.0) и порту 5000</span>
+    <span class="n">app</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">host</span><span class="o">=</span><span class="s1">&#39;0.0.0.0&#39;</span><span class="p">,</span> <span class="n">port</span><span class="o">=</span><span class="mi">5000</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> 
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, t sarikov kalmykov sharibov volkov.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

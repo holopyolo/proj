@@ -1,0 +1,278 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ai_helper - Модуль анализа ошибок с помощью AI &mdash; coding platform 1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=29a6c3e3"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="База данных" href="database.html" />
+    <link rel="prev" title="utils - Модуль утилит" href="utils.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            coding platform
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Содержание:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Установка</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../usage.html">Использование</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture.html">Архитектура</a></li>
+<li class="toctree-l1"><a class="reference internal" href="app.html">app - Основной модуль приложения</a></li>
+<li class="toctree-l1"><a class="reference internal" href="utils.html">utils - Модуль утилит</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">ai_helper - Модуль анализа ошибок с помощью AI</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#ai_helper.analyze_error"><code class="docutils literal notranslate"><span class="pre">analyze_error()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#ai_helper.categorize_error"><code class="docutils literal notranslate"><span class="pre">categorize_error()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#ai_helper.extract_syntax_error_info"><code class="docutils literal notranslate"><span class="pre">extract_syntax_error_info()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#ai_helper.get_syntax_error_suggestions"><code class="docutils literal notranslate"><span class="pre">get_syntax_error_suggestions()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#ai_helper.prepare_prompt"><code class="docutils literal notranslate"><span class="pre">prepare_prompt()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#ai_helper.parse_llm_response"><code class="docutils literal notranslate"><span class="pre">parse_llm_response()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#ai_helper.format_analysis_for_display"><code class="docutils literal notranslate"><span class="pre">format_analysis_for_display()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#ai_helper.format_basic_analysis"><code class="docutils literal notranslate"><span class="pre">format_basic_analysis()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id1">Основные функции</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#openai-api">Взаимодействие с OpenAI API</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="database.html">База данных</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../contributing.html">Участие в разработке</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../changelog.html">История изменений</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">coding platform</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">ai_helper - Модуль анализа ошибок с помощью AI</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/modules/ai_helper.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="ai-helper-ai">
+<h1>ai_helper - Модуль анализа ошибок с помощью AI<a class="headerlink" href="#ai-helper-ai" title="Link to this heading"></a></h1>
+<p>Модуль содержит функции для анализа ошибок в коде пользователя с использованием OpenAI API.</p>
+<dl class="py function" id="module-ai_helper">
+<dt class="sig sig-object py" id="ai_helper.analyze_error">
+<span class="sig-prename descclassname"><span class="pre">ai_helper.</span></span><span class="sig-name descname"><span class="pre">analyze_error</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">code</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">error_message</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">test_cases</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">failed_test_index</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/ai_helper.html#analyze_error"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ai_helper.analyze_error" title="Link to this definition"></a></dt>
+<dd><p>Анализирует ошибку в коде с помощью OpenAI API.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>code</strong> (<em>str</em>) – Исходный код пользователя</p></li>
+<li><p><strong>error_message</strong> (<em>str</em>) – Сообщение об ошибке</p></li>
+<li><p><strong>test_cases</strong> (<em>list</em>) – Список тестовых случаев</p></li>
+<li><p><strong>failed_test_index</strong> (<em>int</em><em>, </em><em>optional</em>) – Индекс неудавшегося теста</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><dl class="simple">
+<dt>Результат анализа ошибки со следующими ключами:</dt><dd><ul class="simple">
+<li><p>error_type: тип ошибки (синтаксическая, времени выполнения, логическая)</p></li>
+<li><p>explanation: объяснение ошибки</p></li>
+<li><p>suggestions: предложения по исправлению</p></li>
+<li><p>concepts: связанные концепции</p></li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ai_helper.categorize_error">
+<span class="sig-prename descclassname"><span class="pre">ai_helper.</span></span><span class="sig-name descname"><span class="pre">categorize_error</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">error_message</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="reference internal" href="../_modules/ai_helper.html#categorize_error"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ai_helper.categorize_error" title="Link to this definition"></a></dt>
+<dd><p>Определяет тип ошибки на основе сообщения об ошибке</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ai_helper.extract_syntax_error_info">
+<span class="sig-prename descclassname"><span class="pre">ai_helper.</span></span><span class="sig-name descname"><span class="pre">extract_syntax_error_info</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">error_message</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/ai_helper.html#extract_syntax_error_info"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ai_helper.extract_syntax_error_info" title="Link to this definition"></a></dt>
+<dd><p>Извлекает информацию о синтаксической ошибке</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ai_helper.get_syntax_error_suggestions">
+<span class="sig-prename descclassname"><span class="pre">ai_helper.</span></span><span class="sig-name descname"><span class="pre">get_syntax_error_suggestions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">error_info</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">code</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ai_helper.html#get_syntax_error_suggestions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ai_helper.get_syntax_error_suggestions" title="Link to this definition"></a></dt>
+<dd><p>Генерирует предложения для исправления синтаксической ошибки</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ai_helper.prepare_prompt">
+<span class="sig-prename descclassname"><span class="pre">ai_helper.</span></span><span class="sig-name descname"><span class="pre">prepare_prompt</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">code</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">error_message</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">test_cases</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">error_type</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">failed_test_index</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="reference internal" href="../_modules/ai_helper.html#prepare_prompt"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ai_helper.prepare_prompt" title="Link to this definition"></a></dt>
+<dd><p>Подготавливает запрос к LLM на основе типа ошибки</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ai_helper.parse_llm_response">
+<span class="sig-prename descclassname"><span class="pre">ai_helper.</span></span><span class="sig-name descname"><span class="pre">parse_llm_response</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">response_text</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ai_helper.html#parse_llm_response"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ai_helper.parse_llm_response" title="Link to this definition"></a></dt>
+<dd><p>Парсит ответ от LLM в структурированный формат</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ai_helper.format_analysis_for_display">
+<span class="sig-prename descclassname"><span class="pre">ai_helper.</span></span><span class="sig-name descname"><span class="pre">format_analysis_for_display</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">analysis</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="reference internal" href="../_modules/ai_helper.html#format_analysis_for_display"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ai_helper.format_analysis_for_display" title="Link to this definition"></a></dt>
+<dd><p>Форматирует анализ для отображения в пользовательском интерфейсе.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>analysis</strong> – Словарь с анализом ошибки</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Отформатированный текст для отображения</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ai_helper.format_basic_analysis">
+<span class="sig-prename descclassname"><span class="pre">ai_helper.</span></span><span class="sig-name descname"><span class="pre">format_basic_analysis</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">error_message</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/ai_helper.html#format_basic_analysis"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ai_helper.format_basic_analysis" title="Link to this definition"></a></dt>
+<dd><p>Форматирует базовый анализ ошибки</p>
+</dd></dl>
+
+<section id="id1">
+<h2>Основные функции<a class="headerlink" href="#id1" title="Link to this heading"></a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">analyze_error</span><span class="p">(</span><span class="n">code</span><span class="p">,</span> <span class="n">error_message</span><span class="p">,</span> <span class="n">test_cases</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Анализирует ошибку в коде пользователя.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        code (str): Код пользователя</span>
+<span class="sd">        error_message (str): Сообщение об ошибке</span>
+<span class="sd">        test_cases (list): Список тестовых случаев</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        dict: Анализ ошибки с рекомендациями</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<span class="k">def</span> <span class="nf">get_error_type</span><span class="p">(</span><span class="n">error_message</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Определяет тип ошибки.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        error_message (str): Сообщение об ошибке</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        str: Тип ошибки (синтаксическая, времени выполнения, логическая)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+</pre></div>
+</div>
+</section>
+<section id="openai-api">
+<h2>Взаимодействие с OpenAI API<a class="headerlink" href="#openai-api" title="Link to this heading"></a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">generate_openai_prompt</span><span class="p">(</span><span class="n">code</span><span class="p">,</span> <span class="n">error_message</span><span class="p">,</span> <span class="n">test_cases</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Формирует запрос к OpenAI API.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        code (str): Код пользователя</span>
+<span class="sd">        error_message (str): Сообщение об ошибке</span>
+<span class="sd">        test_cases (list): Список тестовых случаев</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        str: Текст запроса</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<span class="k">def</span> <span class="nf">call_openai_api</span><span class="p">(</span><span class="n">prompt</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Отправляет запрос к OpenAI API.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        prompt (str): Текст запроса</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        str: Ответ от API</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<span class="k">def</span> <span class="nf">parse_openai_response</span><span class="p">(</span><span class="n">response</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Обрабатывает ответ от OpenAI API.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        response (str): Ответ от API</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        dict: Структурированный анализ ошибки</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+</pre></div>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="utils.html" class="btn btn-neutral float-left" title="utils - Модуль утилит" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="database.html" class="btn btn-neutral float-right" title="База данных" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, t sarikov kalmykov sharibov volkov.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

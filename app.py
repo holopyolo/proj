@@ -717,4 +717,5 @@ if __name__ == '__main__':
         except Exception as e:
             print(f"Ошибка при проверке базы данных: {str(e)}")
     
-    app.run(debug=True) 
+    # Запускаем приложение на всех интерфейсах (0.0.0.0) и порту 5000
+    app.run(host='0.0.0.0', port=5000, debug=False) 

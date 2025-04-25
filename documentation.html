@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Документация кодинг-платформы</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #3498db;
+            margin-top: 25px;
+        }
+        .button {
+            display: inline-block;
+            background-color: #3498db;
+            color: white;
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 4px;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        .button:hover {
+            background-color: #2980b9;
+        }
+        .card {
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 15px;
+            margin: 15px 0;
+            background-color: #f9f9f9;
+        }
+        ul {
+            padding-left: 20px;
+        }
+        li {
+            margin-bottom: 8px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Документация кодинг-платформы</h1>
+    
+    <p>
+        Добро пожаловать на страницу документации кодинг-платформы. Здесь вы найдете всю необходимую информацию для установки, использования и разработки платформы.
+    </p>
+    
+    <a href="docs/build/html/index.html" class="button">Открыть полную документацию</a>
+    
+    <h2>Краткое описание</h2>
+    <div class="card">
+        <p>
+            Кодинг-платформа — это веб-приложение для решения задач по программированию с автоматической проверкой решений и анализом ошибок с помощью LLM (больших языковых моделей).
+        </p>
+        <p>
+            Основные возможности:
+        </p>
+        <ul>
+            <li>Регистрация и авторизация пользователей</li>
+            <li>Решение задач с помощью встроенного редактора кода</li>
+            <li>Автоматическая проверка решений на тестовых случаях</li>
+            <li>Интеллектуальный анализ ошибок с помощью LLM</li>
+            <li>Управление задачами для преподавателей и администраторов</li>
+        </ul>
+    </div>
+    
+    <h2>Быстрые ссылки</h2>
+    <div class="card">
+        <ul>
+            <li><a href="docs/build/html/installation.html">Инструкции по установке</a></li>
+            <li><a href="docs/build/html/usage.html">Руководство пользователя</a></li>
+            <li><a href="docs/build/html/architecture.html">Архитектура системы</a></li>
+            <li><a href="docs/build/html/modules/app.html">Документация по модулю app.py</a></li>
+            <li><a href="docs/build/html/modules/utils.html">Документация по модулю utils.py</a></li>
+            <li><a href="docs/build/html/modules/ai_helper.html">Документация по модулю ai_helper.py</a></li>
+            <li><a href="docs/build/html/modules/database.html">Документация по базе данных</a></li>
+            <li><a href="docs/build/html/contributing.html">Участие в разработке</a></li>
+        </ul>
+    </div>
+    
+    <h2>Как просмотреть документацию</h2>
+    <div class="card">
+        <p>Для просмотра полной документации:</p>
+        <ol>
+            <li>Убедитесь, что документация собрана:
+                <pre>cd docs
+make html</pre>
+            </li>
+            <li>Откройте файл <code>docs/build/html/index.html</code> в браузере</li>
+        </ol>
+        <p>Подробнее о работе с документацией можно узнать в файле <a href="docs_guide.md">docs_guide.md</a>.</p>
+    </div>
+    
+    <footer style="margin-top: 50px; text-align: center; color: #777; border-top: 1px solid #eee; padding-top: 20px;">
+        <p>Документация сгенерирована с использованием <a href="https://www.sphinx-doc.org/">Sphinx</a> © 2025</p>
+    </footer>
+</body>
+</html> 

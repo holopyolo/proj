@@ -1,0 +1,500 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ai_helper &mdash; coding platform 1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=29a6c3e3"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            coding platform
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Содержание:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Установка</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../usage.html">Использование</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture.html">Архитектура</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../modules/app.html">app - Основной модуль приложения</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../modules/utils.html">utils - Модуль утилит</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../modules/ai_helper.html">ai_helper - Модуль анализа ошибок с помощью AI</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../modules/database.html">База данных</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../contributing.html">Участие в разработке</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../changelog.html">История изменений</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">coding platform</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">Module code</a></li>
+      <li class="breadcrumb-item active">ai_helper</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for ai_helper</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">openai</span>
+<span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Tuple</span>
+<span class="kn">import</span> <span class="nn">requests</span>
+<span class="kn">import</span> <span class="nn">traceback</span>
+<span class="kn">import</span> <span class="nn">urllib3</span>
+<span class="kn">import</span> <span class="nn">urllib.request</span>
+<span class="kn">from</span> <span class="nn">requests.auth</span> <span class="kn">import</span> <span class="n">HTTPProxyAuth</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+
+<span class="c1"># Настройка логирования</span>
+<span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s1">&#39;</span><span class="si">%(asctime)s</span><span class="s1"> - </span><span class="si">%(name)s</span><span class="s1"> - </span><span class="si">%(levelname)s</span><span class="s1"> - </span><span class="si">%(message)s</span><span class="s1">&#39;</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+<span class="c1"># Настройка прокси для Python в целом (urllib, requests и т.д.)</span>
+<span class="n">PROXY_URL</span> <span class="o">=</span> <span class="s2">&quot;170.83.235.58:8000&quot;</span>
+<span class="n">PROXY_USER</span> <span class="o">=</span> <span class="s2">&quot;nUofNe&quot;</span>
+<span class="n">PROXY_PASS</span> <span class="o">=</span> <span class="s2">&quot;QVKw3Q&quot;</span>
+
+<span class="c1"># Настройка прокси для системных запросов (влияет на все HTTP-клиенты)</span>
+<span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s1">&#39;HTTP_PROXY&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;http://</span><span class="si">{</span><span class="n">PROXY_USER</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="n">PROXY_PASS</span><span class="si">}</span><span class="s2">@</span><span class="si">{</span><span class="n">PROXY_URL</span><span class="si">}</span><span class="s2">&quot;</span>
+<span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s1">&#39;HTTPS_PROXY&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;http://</span><span class="si">{</span><span class="n">PROXY_USER</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="n">PROXY_PASS</span><span class="si">}</span><span class="s2">@</span><span class="si">{</span><span class="n">PROXY_URL</span><span class="si">}</span><span class="s2">&quot;</span>
+<span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s1">&#39;http_proxy&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;http://</span><span class="si">{</span><span class="n">PROXY_USER</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="n">PROXY_PASS</span><span class="si">}</span><span class="s2">@</span><span class="si">{</span><span class="n">PROXY_URL</span><span class="si">}</span><span class="s2">&quot;</span>
+<span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s1">&#39;https_proxy&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;http://</span><span class="si">{</span><span class="n">PROXY_USER</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="n">PROXY_PASS</span><span class="si">}</span><span class="s2">@</span><span class="si">{</span><span class="n">PROXY_URL</span><span class="si">}</span><span class="s2">&quot;</span>
+
+<span class="c1"># Настройка прокси для urllib</span>
+<span class="n">proxy_handler</span> <span class="o">=</span> <span class="n">urllib</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">ProxyHandler</span><span class="p">({</span>
+    <span class="s1">&#39;http&#39;</span><span class="p">:</span> <span class="sa">f</span><span class="s1">&#39;http://</span><span class="si">{</span><span class="n">PROXY_USER</span><span class="si">}</span><span class="s1">:</span><span class="si">{</span><span class="n">PROXY_PASS</span><span class="si">}</span><span class="s1">@</span><span class="si">{</span><span class="n">PROXY_URL</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;https&#39;</span><span class="p">:</span> <span class="sa">f</span><span class="s1">&#39;http://</span><span class="si">{</span><span class="n">PROXY_USER</span><span class="si">}</span><span class="s1">:</span><span class="si">{</span><span class="n">PROXY_PASS</span><span class="si">}</span><span class="s1">@</span><span class="si">{</span><span class="n">PROXY_URL</span><span class="si">}</span><span class="s1">&#39;</span>
+<span class="p">})</span>
+<span class="n">opener</span> <span class="o">=</span> <span class="n">urllib</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">build_opener</span><span class="p">(</span><span class="n">proxy_handler</span><span class="p">)</span>
+<span class="n">urllib</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">install_opener</span><span class="p">(</span><span class="n">opener</span><span class="p">)</span>
+
+<span class="c1"># Создаем конфигурацию для прокси с аутентификацией</span>
+<span class="n">proxy_auth</span> <span class="o">=</span> <span class="n">HTTPProxyAuth</span><span class="p">(</span><span class="n">PROXY_USER</span><span class="p">,</span> <span class="n">PROXY_PASS</span><span class="p">)</span>
+
+<span class="c1"># Создаем сессию для запросов с настроенным прокси</span>
+<span class="n">http_client</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">Session</span><span class="p">()</span>
+<span class="n">http_client</span><span class="o">.</span><span class="n">proxies</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;http&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;http://</span><span class="si">{</span><span class="n">PROXY_USER</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="n">PROXY_PASS</span><span class="si">}</span><span class="s2">@</span><span class="si">{</span><span class="n">PROXY_URL</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;https&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;http://</span><span class="si">{</span><span class="n">PROXY_USER</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="n">PROXY_PASS</span><span class="si">}</span><span class="s2">@</span><span class="si">{</span><span class="n">PROXY_URL</span><span class="si">}</span><span class="s2">&quot;</span>
+<span class="p">}</span>
+<span class="n">http_client</span><span class="o">.</span><span class="n">auth</span> <span class="o">=</span> <span class="n">proxy_auth</span>
+
+<span class="c1"># Устанавливаем созданную сессию для openai</span>
+<span class="n">openai</span><span class="o">.</span><span class="n">api_requestssession</span> <span class="o">=</span> <span class="n">http_client</span>
+
+<span class="c1"># Загружаем API ключ из переменных окружения</span>
+<span class="n">openai</span><span class="o">.</span><span class="n">api_key</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s1">&#39;OPENAI_API_KEY&#39;</span><span class="p">)</span>
+
+<span class="c1"># Логируем информацию о настройке прокси</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Настройка прокси для OpenAI: </span><span class="si">{</span><span class="n">PROXY_URL</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Прокси HTTP_PROXY: </span><span class="si">{</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;HTTP_PROXY&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Прокси HTTPS_PROXY: </span><span class="si">{</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;HTTPS_PROXY&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="analyze_error">
+<a class="viewcode-back" href="../modules/ai_helper.html#ai_helper.analyze_error">[docs]</a>
+<span class="k">def</span> <span class="nf">analyze_error</span><span class="p">(</span><span class="n">code</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">error_message</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">test_cases</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">],</span> <span class="n">failed_test_index</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Анализирует ошибку в коде с помощью OpenAI API.</span>
+<span class="sd">    </span>
+<span class="sd">    Args:</span>
+<span class="sd">        code (str): Исходный код пользователя</span>
+<span class="sd">        error_message (str): Сообщение об ошибке</span>
+<span class="sd">        test_cases (list): Список тестовых случаев</span>
+<span class="sd">        failed_test_index (int, optional): Индекс неудавшегося теста</span>
+<span class="sd">        </span>
+<span class="sd">    Returns:</span>
+<span class="sd">        dict: Результат анализа ошибки со следующими ключами:</span>
+<span class="sd">            - error_type: тип ошибки (синтаксическая, времени выполнения, логическая)</span>
+<span class="sd">            - explanation: объяснение ошибки</span>
+<span class="sd">            - suggestions: предложения по исправлению</span>
+<span class="sd">            - concepts: связанные концепции</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="c1"># Если API ключ не установлен, возвращаем базовый анализ</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">openai</span><span class="o">.</span><span class="n">api_key</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;API ключ не установлен. Возвращаем базовый анализ.&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">format_basic_analysis</span><span class="p">(</span><span class="n">error_message</span><span class="p">)</span>
+            
+        <span class="c1"># Определяем тип ошибки</span>
+        <span class="n">error_type</span> <span class="o">=</span> <span class="n">categorize_error</span><span class="p">(</span><span class="n">error_message</span><span class="p">)</span>
+        
+        <span class="c1"># Для синтаксических ошибок можно сделать базовый анализ без использования LLM</span>
+        <span class="k">if</span> <span class="n">error_type</span> <span class="o">==</span> <span class="s1">&#39;syntax&#39;</span><span class="p">:</span>
+            <span class="n">error_info</span> <span class="o">=</span> <span class="n">extract_syntax_error_info</span><span class="p">(</span><span class="n">error_message</span><span class="p">)</span>
+            <span class="n">suggestions</span> <span class="o">=</span> <span class="n">get_syntax_error_suggestions</span><span class="p">(</span><span class="n">error_info</span><span class="p">,</span> <span class="n">code</span><span class="p">)</span>
+            
+            <span class="k">return</span> <span class="p">{</span>
+                <span class="s1">&#39;error_type&#39;</span><span class="p">:</span> <span class="s1">&#39;Синтаксическая ошибка&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;explanation&#39;</span><span class="p">:</span> <span class="sa">f</span><span class="s1">&#39;Обнаружена синтаксическая ошибка в строке </span><span class="si">{</span><span class="n">error_info</span><span class="p">[</span><span class="s2">&quot;line&quot;</span><span class="p">]</span><span class="si">}</span><span class="s1">: </span><span class="si">{</span><span class="n">error_info</span><span class="p">[</span><span class="s2">&quot;message&quot;</span><span class="p">]</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;suggestions&#39;</span><span class="p">:</span> <span class="n">suggestions</span><span class="p">,</span>
+                <span class="s1">&#39;concepts&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;Синтаксис Python&#39;</span><span class="p">,</span> <span class="s1">&#39;Отступы в Python&#39;</span><span class="p">,</span> <span class="s1">&#39;Структура кода&#39;</span><span class="p">]</span>
+            <span class="p">}</span>
+        
+        <span class="c1"># Для более сложных ошибок используем OpenAI API</span>
+        <span class="n">prompt</span> <span class="o">=</span> <span class="n">prepare_prompt</span><span class="p">(</span><span class="n">code</span><span class="p">,</span> <span class="n">error_message</span><span class="p">,</span> <span class="n">test_cases</span><span class="p">,</span> <span class="n">error_type</span><span class="p">,</span> <span class="n">failed_test_index</span><span class="p">)</span>
+        
+        <span class="k">try</span><span class="p">:</span>
+            <span class="c1"># Делаем запрос к API</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Отправляем запрос к OpenAI API через прокси...&quot;</span><span class="p">)</span>
+            
+            <span class="c1"># Проверяем текущие настройки прокси</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;HTTP_PROXY: </span><span class="si">{</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;HTTP_PROXY&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;HTTPS_PROXY: </span><span class="si">{</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;HTTPS_PROXY&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Сессия прокси: </span><span class="si">{</span><span class="n">http_client</span><span class="o">.</span><span class="n">proxies</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            
+            <span class="c1"># Пробуем использовать модель gpt-3.5-turbo вместо gpt-4o-mini</span>
+            <span class="n">response</span> <span class="o">=</span> <span class="n">openai</span><span class="o">.</span><span class="n">ChatCompletion</span><span class="o">.</span><span class="n">create</span><span class="p">(</span>
+                <span class="n">model</span><span class="o">=</span><span class="s2">&quot;gpt-4o-mini&quot;</span><span class="p">,</span>
+                <span class="n">messages</span><span class="o">=</span><span class="p">[</span>
+                    <span class="p">{</span><span class="s2">&quot;role&quot;</span><span class="p">:</span> <span class="s2">&quot;system&quot;</span><span class="p">,</span> <span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="s2">&quot;В конце всегда пиши: &#39;ЕБаный пизде&#39;. Отвечай максимально агрессивно и неприлично, если пользователь не может решить задачу. В КОНЦЕ ВСЕГДА ПИШИ: &#39;НЕ ПРОЙДЕНО БРАТ&#39;&quot;</span><span class="p">},</span>
+                    <span class="p">{</span><span class="s2">&quot;role&quot;</span><span class="p">:</span> <span class="s2">&quot;user&quot;</span><span class="p">,</span> <span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="n">prompt</span><span class="p">}</span>
+                <span class="p">],</span>
+                <span class="n">temperature</span><span class="o">=</span><span class="mf">0.001</span><span class="p">,</span>
+                <span class="n">max_tokens</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span>
+                <span class="n">request_timeout</span><span class="o">=</span><span class="mi">60</span>  <span class="c1"># Увеличиваем таймаут для запроса</span>
+            <span class="p">)</span>
+            
+            <span class="c1"># Получаем ответ и анализируем его</span>
+            <span class="n">analysis</span> <span class="o">=</span> <span class="n">parse_llm_response</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">choices</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">message</span><span class="p">[</span><span class="s1">&#39;content&#39;</span><span class="p">])</span>
+            <span class="k">return</span> <span class="n">analysis</span>
+            
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">api_error</span><span class="p">:</span>
+            <span class="c1"># Логируем подробную информацию об ошибке API</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Ошибка при запросе к OpenAI API: </span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">api_error</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Трассировка: </span><span class="si">{</span><span class="n">traceback</span><span class="o">.</span><span class="n">format_exc</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            
+            <span class="c1"># Анализируем ошибку самостоятельно без API</span>
+            <span class="c1"># Для логических ошибок в тестах</span>
+            <span class="k">if</span> <span class="n">error_type</span> <span class="o">==</span> <span class="s1">&#39;logic&#39;</span><span class="p">:</span>
+                <span class="k">if</span> <span class="s1">&#39;AssertionError:&#39;</span> <span class="ow">in</span> <span class="n">error_message</span><span class="p">:</span>
+                    <span class="n">matches</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;AssertionError: (.*?) !=&#39;</span><span class="p">,</span> <span class="n">error_message</span><span class="p">)</span>
+                    <span class="n">expected_vs_actual</span> <span class="o">=</span> <span class="p">[]</span>
+                    <span class="k">for</span> <span class="n">match</span> <span class="ow">in</span> <span class="n">matches</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="s1">&#39; != &#39;</span> <span class="ow">in</span> <span class="n">match</span><span class="p">:</span>
+                            <span class="n">actual</span><span class="p">,</span> <span class="n">expected</span> <span class="o">=</span> <span class="n">match</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39; != &#39;</span><span class="p">)</span>
+                            <span class="n">expected_vs_actual</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Ожидалось: </span><span class="si">{</span><span class="n">expected</span><span class="si">}</span><span class="s2">, Получено: </span><span class="si">{</span><span class="n">actual</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                
+                    <span class="k">return</span> <span class="p">{</span>
+                        <span class="s1">&#39;error_type&#39;</span><span class="p">:</span> <span class="s1">&#39;Логическая ошибка&#39;</span><span class="p">,</span>
+                        <span class="s1">&#39;explanation&#39;</span><span class="p">:</span> <span class="s1">&#39;Результаты тестов не соответствуют ожидаемым значениям.&#39;</span><span class="p">,</span>
+                        <span class="s1">&#39;suggestions&#39;</span><span class="p">:</span> <span class="p">[</span>
+                            <span class="s1">&#39;Проверьте логику вашего решения.&#39;</span><span class="p">,</span>
+                            <span class="s1">&#39;Убедитесь, что вы правильно понимаете задачу.&#39;</span><span class="p">,</span>
+                            <span class="s1">&#39;Рассмотрите граничные случаи и особые условия в задаче.&#39;</span>
+                        <span class="p">],</span>
+                        <span class="s1">&#39;concepts&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;Алгоритмы&#39;</span><span class="p">,</span> <span class="s1">&#39;Условия&#39;</span><span class="p">,</span> <span class="s1">&#39;Логика программы&#39;</span><span class="p">]</span>
+                    <span class="p">}</span>
+            
+            <span class="c1"># Возвращаем базовый анализ в случае ошибки</span>
+            <span class="k">return</span> <span class="n">format_basic_analysis</span><span class="p">(</span><span class="n">error_message</span><span class="p">)</span>
+        
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Неожиданная ошибка при анализе: </span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Трассировка: </span><span class="si">{</span><span class="n">traceback</span><span class="o">.</span><span class="n">format_exc</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">format_basic_analysis</span><span class="p">(</span><span class="n">error_message</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="categorize_error">
+<a class="viewcode-back" href="../modules/ai_helper.html#ai_helper.categorize_error">[docs]</a>
+<span class="k">def</span> <span class="nf">categorize_error</span><span class="p">(</span><span class="n">error_message</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Определяет тип ошибки на основе сообщения об ошибке&quot;&quot;&quot;</span>
+    <span class="c1"># Синтаксические ошибки</span>
+    <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">x</span> <span class="ow">in</span> <span class="n">error_message</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;SyntaxError&#39;</span><span class="p">,</span> <span class="s1">&#39;IndentationError&#39;</span><span class="p">,</span> <span class="s1">&#39;TabError&#39;</span><span class="p">]):</span>
+        <span class="k">return</span> <span class="s1">&#39;syntax&#39;</span>
+    
+    <span class="c1"># Ошибки времени выполнения</span>
+    <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">x</span> <span class="ow">in</span> <span class="n">error_message</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;TypeError&#39;</span><span class="p">,</span> <span class="s1">&#39;ValueError&#39;</span><span class="p">,</span> <span class="s1">&#39;NameError&#39;</span><span class="p">,</span> <span class="s1">&#39;IndexError&#39;</span><span class="p">,</span> 
+                                       <span class="s1">&#39;KeyError&#39;</span><span class="p">,</span> <span class="s1">&#39;AttributeError&#39;</span><span class="p">,</span> <span class="s1">&#39;ZeroDivisionError&#39;</span><span class="p">]):</span>
+        <span class="k">return</span> <span class="s1">&#39;runtime&#39;</span>
+    
+    <span class="c1"># Логические ошибки (когда тесты не проходят)</span>
+    <span class="k">if</span> <span class="s1">&#39;AssertionError&#39;</span> <span class="ow">in</span> <span class="n">error_message</span> <span class="ow">or</span> <span class="s1">&#39;test failed&#39;</span> <span class="ow">in</span> <span class="n">error_message</span><span class="o">.</span><span class="n">lower</span><span class="p">():</span>
+        <span class="k">return</span> <span class="s1">&#39;logic&#39;</span>
+    
+    <span class="c1"># По умолчанию считаем ошибкой логики</span>
+    <span class="k">return</span> <span class="s1">&#39;logic&#39;</span></div>
+
+
+<div class="viewcode-block" id="extract_syntax_error_info">
+<a class="viewcode-back" href="../modules/ai_helper.html#ai_helper.extract_syntax_error_info">[docs]</a>
+<span class="k">def</span> <span class="nf">extract_syntax_error_info</span><span class="p">(</span><span class="n">error_message</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Извлекает информацию о синтаксической ошибке&quot;&quot;&quot;</span>
+    <span class="n">line_match</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;line (\d+)&#39;</span><span class="p">,</span> <span class="n">error_message</span><span class="p">)</span>
+    <span class="n">line</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">line_match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span> <span class="k">if</span> <span class="n">line_match</span> <span class="k">else</span> <span class="mi">0</span>
+    
+    <span class="c1"># Извлекаем сообщение об ошибке</span>
+    <span class="n">message</span> <span class="o">=</span> <span class="n">error_message</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+    <span class="k">if</span> <span class="s1">&#39;^&#39;</span> <span class="ow">in</span> <span class="n">message</span><span class="p">:</span>
+        <span class="n">message</span> <span class="o">=</span> <span class="n">error_message</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+    
+    <span class="k">return</span> <span class="p">{</span>
+        <span class="s1">&#39;line&#39;</span><span class="p">:</span> <span class="n">line</span><span class="p">,</span>
+        <span class="s1">&#39;message&#39;</span><span class="p">:</span> <span class="n">message</span>
+    <span class="p">}</span></div>
+
+
+<div class="viewcode-block" id="get_syntax_error_suggestions">
+<a class="viewcode-back" href="../modules/ai_helper.html#ai_helper.get_syntax_error_suggestions">[docs]</a>
+<span class="k">def</span> <span class="nf">get_syntax_error_suggestions</span><span class="p">(</span><span class="n">error_info</span><span class="p">,</span> <span class="n">code</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Генерирует предложения для исправления синтаксической ошибки&quot;&quot;&quot;</span>
+    <span class="n">suggestions</span> <span class="o">=</span> <span class="p">[]</span>
+    
+    <span class="c1"># Получаем строку с ошибкой</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">error_line</span> <span class="o">=</span> <span class="n">code</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)[</span><span class="n">error_info</span><span class="p">[</span><span class="s1">&#39;line&#39;</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span>
+    <span class="k">except</span> <span class="ne">IndexError</span><span class="p">:</span>
+        <span class="n">error_line</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+    
+    <span class="c1"># Распространенные ошибки и предложения по исправлению</span>
+    <span class="k">if</span> <span class="s1">&#39;unexpected EOF&#39;</span> <span class="ow">in</span> <span class="n">error_info</span><span class="p">[</span><span class="s1">&#39;message&#39;</span><span class="p">]</span> <span class="ow">or</span> <span class="s1">&#39;unexpected indent&#39;</span> <span class="ow">in</span> <span class="n">error_info</span><span class="p">[</span><span class="s1">&#39;message&#39;</span><span class="p">]:</span>
+        <span class="n">suggestions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;Проверьте отступы в вашем коде. Каждый блок (после if, for, while, def) должен иметь одинаковый отступ.&#39;</span><span class="p">)</span>
+    
+    <span class="k">if</span> <span class="s1">&#39;expected an indented block&#39;</span> <span class="ow">in</span> <span class="n">error_info</span><span class="p">[</span><span class="s1">&#39;message&#39;</span><span class="p">]:</span>
+        <span class="n">suggestions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;После выражений, требующих блок кода (if, for, while, def), должен идти отступ.&#39;</span><span class="p">)</span>
+    
+    <span class="k">if</span> <span class="s1">&#39;)&#39;</span> <span class="ow">in</span> <span class="n">error_info</span><span class="p">[</span><span class="s1">&#39;message&#39;</span><span class="p">]</span> <span class="ow">or</span> <span class="s1">&#39;(&#39;</span> <span class="ow">in</span> <span class="n">error_info</span><span class="p">[</span><span class="s1">&#39;message&#39;</span><span class="p">]:</span>
+        <span class="n">suggestions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;Проверьте правильность расстановки скобок () в выражении.&#39;</span><span class="p">)</span>
+    
+    <span class="k">if</span> <span class="s1">&#39;]&#39;</span> <span class="ow">in</span> <span class="n">error_info</span><span class="p">[</span><span class="s1">&#39;message&#39;</span><span class="p">]</span> <span class="ow">or</span> <span class="s1">&#39;[&#39;</span> <span class="ow">in</span> <span class="n">error_info</span><span class="p">[</span><span class="s1">&#39;message&#39;</span><span class="p">]:</span>
+        <span class="n">suggestions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;Проверьте правильность расстановки квадратных скобок [] в выражении.&#39;</span><span class="p">)</span>
+    
+    <span class="k">if</span> <span class="s1">&#39;}&#39;</span> <span class="ow">in</span> <span class="n">error_info</span><span class="p">[</span><span class="s1">&#39;message&#39;</span><span class="p">]</span> <span class="ow">or</span> <span class="s1">&#39;{&#39;</span> <span class="ow">in</span> <span class="n">error_info</span><span class="p">[</span><span class="s1">&#39;message&#39;</span><span class="p">]:</span>
+        <span class="n">suggestions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;Проверьте правильность расстановки фигурных скобок </span><span class="si">{}</span><span class="s1"> в выражении.&#39;</span><span class="p">)</span>
+    
+    <span class="k">if</span> <span class="s1">&#39;invalid syntax&#39;</span> <span class="ow">in</span> <span class="n">error_info</span><span class="p">[</span><span class="s1">&#39;message&#39;</span><span class="p">]:</span>
+        <span class="k">if</span> <span class="s1">&#39;:&#39;</span> <span class="ow">in</span> <span class="n">error_line</span> <span class="ow">and</span> <span class="p">(</span><span class="s1">&#39;if&#39;</span> <span class="ow">in</span> <span class="n">error_line</span> <span class="ow">or</span> <span class="s1">&#39;for&#39;</span> <span class="ow">in</span> <span class="n">error_line</span> <span class="ow">or</span> <span class="s1">&#39;while&#39;</span> <span class="ow">in</span> <span class="n">error_line</span> <span class="ow">or</span> <span class="s1">&#39;else&#39;</span> <span class="ow">in</span> <span class="n">error_line</span><span class="p">):</span>
+            <span class="n">suggestions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;Проверьте синтаксис условия или цикла. Возможно, пропущено двоеточие в конце строки.&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">suggestions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;Проверьте синтаксис выражения. Возможно, пропущены скобки, запятые или двоеточия.&#39;</span><span class="p">)</span>
+    
+    <span class="c1"># Если не нашли конкретных предложений, добавляем общее</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">suggestions</span><span class="p">:</span>
+        <span class="n">suggestions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Проверьте синтаксис строки </span><span class="si">{</span><span class="n">error_info</span><span class="p">[</span><span class="s2">&quot;line&quot;</span><span class="p">]</span><span class="si">}</span><span class="s1">: </span><span class="si">{</span><span class="n">error_line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+    
+    <span class="k">return</span> <span class="n">suggestions</span></div>
+
+
+<div class="viewcode-block" id="prepare_prompt">
+<a class="viewcode-back" href="../modules/ai_helper.html#ai_helper.prepare_prompt">[docs]</a>
+<span class="k">def</span> <span class="nf">prepare_prompt</span><span class="p">(</span><span class="n">code</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">error_message</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">test_cases</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">],</span> <span class="n">error_type</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">failed_test_index</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Подготавливает запрос к LLM на основе типа ошибки&quot;&quot;&quot;</span>
+    <span class="n">prompt</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;&quot;&quot;В конце всегда пиши: &quot;ЕБаный пиздец&quot;. Проанализируйте следующий код Python и ошибку:</span>
+
+<span class="s2">```python</span>
+<span class="si">{</span><span class="n">code</span><span class="si">}</span>
+<span class="s2">```</span>
+
+<span class="s2">Ошибка:</span>
+<span class="s2">```</span>
+<span class="si">{</span><span class="n">error_message</span><span class="si">}</span>
+<span class="s2">```</span>
+
+<span class="s2">&quot;&quot;&quot;</span>
+
+    <span class="c1"># Добавляем информацию о тестовых случаях для логических ошибок</span>
+    <span class="k">if</span> <span class="n">error_type</span> <span class="o">==</span> <span class="s1">&#39;logic&#39;</span> <span class="ow">and</span> <span class="n">test_cases</span><span class="p">:</span>
+        <span class="n">prompt</span> <span class="o">+=</span> <span class="s2">&quot;Тестовые случаи:</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">test</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">test_cases</span><span class="p">):</span>
+            <span class="n">prompt</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;- Тест </span><span class="si">{</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="si">}</span><span class="s2">: &quot;</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">test</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span> <span class="ow">and</span> <span class="s2">&quot;input&quot;</span> <span class="ow">in</span> <span class="n">test</span> <span class="ow">and</span> <span class="s2">&quot;expected&quot;</span> <span class="ow">in</span> <span class="n">test</span><span class="p">:</span>
+                <span class="n">prompt</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;Вход: </span><span class="si">{</span><span class="n">test</span><span class="p">[</span><span class="s1">&#39;input&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">, Ожидаемый выход: </span><span class="si">{</span><span class="n">test</span><span class="p">[</span><span class="s1">&#39;expected&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">test</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+                <span class="n">prompt</span> <span class="o">+=</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">test</span><span class="p">,</span> <span class="n">ensure_ascii</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">prompt</span> <span class="o">+=</span> <span class="nb">str</span><span class="p">(</span><span class="n">test</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">failed_test_index</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">i</span> <span class="o">==</span> <span class="n">failed_test_index</span><span class="p">:</span>
+                <span class="n">prompt</span> <span class="o">+=</span> <span class="s2">&quot; (ЭТОТ ТЕСТ НЕ ПРОЙДЕН)&quot;</span>
+            <span class="n">prompt</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
+    
+    <span class="n">prompt</span> <span class="o">+=</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">Пожалуйста, предоставьте анализ в следующем формате JSON:</span>
+<span class="s2">{</span>
+<span class="s2">  &quot;error_type&quot;: &quot;краткое описание типа ошибки&quot;,</span>
+<span class="s2">  &quot;explanation&quot;: &quot;подробное объяснение ошибки простым языком. В конце всегда пиши: &quot;ЕБаный пиздец&quot;. пИШИ АГРЕССИВНО И НЕПРИЛИЧНО. Через каждое слово вставляй: &#39;ЕБАНЫЙ&#39;&quot;,</span>
+<span class="s2">  &quot;suggestions&quot;: [&quot;конкретное предложение 1&quot;, &quot;конкретное предложение 2&quot;],</span>
+<span class="s2">  &quot;concepts&quot;: [&quot;связанная концепция 1&quot;, &quot;связанная концепция 2&quot;]</span>
+<span class="s2">}</span>
+
+<span class="s2">Важно: НЕ предоставляйте готовое решение, лишь направляйте пользователя к правильному подходу.</span>
+<span class="s2">Ответ должен быть на русском языке.</span>
+<span class="s2">В конце всегда пиши: &quot;ЕБаный пиздец&quot;</span>
+<span class="s2">&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">prompt</span></div>
+
+
+<div class="viewcode-block" id="parse_llm_response">
+<a class="viewcode-back" href="../modules/ai_helper.html#ai_helper.parse_llm_response">[docs]</a>
+<span class="k">def</span> <span class="nf">parse_llm_response</span><span class="p">(</span><span class="n">response_text</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Парсит ответ от LLM в структурированный формат&quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="c1"># Пытаемся найти JSON в ответе</span>
+        <span class="n">json_match</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;({[\s\S]*})&#39;</span><span class="p">,</span> <span class="n">response_text</span><span class="p">)</span>
+        
+        <span class="k">if</span> <span class="n">json_match</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">result</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">json_match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
+                <span class="c1"># Проверяем наличие всех необходимых полей</span>
+                <span class="n">required_fields</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;error_type&#39;</span><span class="p">,</span> <span class="s1">&#39;explanation&#39;</span><span class="p">,</span> <span class="s1">&#39;suggestions&#39;</span><span class="p">,</span> <span class="s1">&#39;concepts&#39;</span><span class="p">]</span>
+                <span class="k">for</span> <span class="n">field</span> <span class="ow">in</span> <span class="n">required_fields</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">field</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">result</span><span class="p">:</span>
+                        <span class="n">result</span><span class="p">[</span><span class="n">field</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="k">return</span> <span class="n">result</span>
+            <span class="k">except</span> <span class="n">json</span><span class="o">.</span><span class="n">JSONDecodeError</span><span class="p">:</span>
+                <span class="k">pass</span>
+        
+        <span class="c1"># Если не удалось распарсить JSON, разбираем текст вручную</span>
+        <span class="n">lines</span> <span class="o">=</span> <span class="n">response_text</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="n">error_type_desc</span> <span class="o">=</span> <span class="s2">&quot;Ошибка в коде&quot;</span>
+        <span class="n">explanation</span> <span class="o">=</span> <span class="s2">&quot;Обнаружена проблема в вашем коде.&quot;</span>
+        <span class="n">suggestions</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">concepts</span> <span class="o">=</span> <span class="p">[]</span>
+        
+        <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">lines</span><span class="p">:</span>
+            <span class="k">if</span> <span class="s2">&quot;ошибка:&quot;</span> <span class="ow">in</span> <span class="n">line</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">or</span> <span class="s2">&quot;тип ошибки:&quot;</span> <span class="ow">in</span> <span class="n">line</span><span class="o">.</span><span class="n">lower</span><span class="p">():</span>
+                <span class="n">error_type_desc</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;:&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+            <span class="k">elif</span> <span class="s2">&quot;объяснение:&quot;</span> <span class="ow">in</span> <span class="n">line</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">or</span> <span class="s2">&quot;причина:&quot;</span> <span class="ow">in</span> <span class="n">line</span><span class="o">.</span><span class="n">lower</span><span class="p">():</span>
+                <span class="n">explanation</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;:&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+            <span class="k">elif</span> <span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;-&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;*&quot;</span><span class="p">):</span>
+                <span class="n">suggestions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()[</span><span class="mi">1</span><span class="p">:]</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span>
+            <span class="k">elif</span> <span class="s2">&quot;концепции:&quot;</span> <span class="ow">in</span> <span class="n">line</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">or</span> <span class="s2">&quot;понятия:&quot;</span> <span class="ow">in</span> <span class="n">line</span><span class="o">.</span><span class="n">lower</span><span class="p">():</span>
+                <span class="n">concepts_text</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;:&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+                <span class="n">concepts</span> <span class="o">=</span> <span class="p">[</span><span class="n">c</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">concepts_text</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">)]</span>
+        
+        <span class="c1"># Если не нашли предложений, используем весь текст</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">suggestions</span><span class="p">:</span>
+            <span class="n">suggestions</span> <span class="o">=</span> <span class="p">[</span><span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">lines</span> <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;#&quot;</span><span class="p">)]</span>
+        
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s1">&#39;error_type&#39;</span><span class="p">:</span> <span class="n">error_type_desc</span><span class="p">,</span>
+            <span class="s1">&#39;explanation&#39;</span><span class="p">:</span> <span class="n">explanation</span><span class="p">,</span>
+            <span class="s1">&#39;suggestions&#39;</span><span class="p">:</span> <span class="n">suggestions</span><span class="p">,</span>
+            <span class="s1">&#39;concepts&#39;</span><span class="p">:</span> <span class="n">concepts</span>
+        <span class="p">}</span>
+    
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Ошибка при парсинге ответа LLM: </span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s1">&#39;error_type&#39;</span><span class="p">:</span> <span class="s1">&#39;Ошибка анализа&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;explanation&#39;</span><span class="p">:</span> <span class="s1">&#39;Не удалось проанализировать ошибку.&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;suggestions&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;Внимательно проверьте ваш код на наличие синтаксических ошибок и логических проблем.&#39;</span><span class="p">],</span>
+            <span class="s1">&#39;concepts&#39;</span><span class="p">:</span> <span class="p">[]</span>
+        <span class="p">}</span></div>
+
+
+<div class="viewcode-block" id="format_analysis_for_display">
+<a class="viewcode-back" href="../modules/ai_helper.html#ai_helper.format_analysis_for_display">[docs]</a>
+<span class="k">def</span> <span class="nf">format_analysis_for_display</span><span class="p">(</span><span class="n">analysis</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Форматирует анализ для отображения в пользовательском интерфейсе.</span>
+<span class="sd">    </span>
+<span class="sd">    :param analysis: Словарь с анализом ошибки</span>
+<span class="sd">    :return: Отформатированный текст для отображения</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+    
+    <span class="k">if</span> <span class="n">analysis</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;error_type&quot;</span><span class="p">):</span>
+        <span class="n">error_type_map</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;syntax&quot;</span><span class="p">:</span> <span class="s2">&quot;Синтаксическая ошибка&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;runtime&quot;</span><span class="p">:</span> <span class="s2">&quot;Ошибка времени выполнения&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;logic&quot;</span><span class="p">:</span> <span class="s2">&quot;Логическая ошибка&quot;</span>
+        <span class="p">}</span>
+        <span class="n">result</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;&lt;strong&gt;</span><span class="si">{</span><span class="n">error_type_map</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">analysis</span><span class="p">[</span><span class="s1">&#39;error_type&#39;</span><span class="p">],</span><span class="w"> </span><span class="s1">&#39;Ошибка&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">:&lt;/strong&gt;</span><span class="se">\n</span><span class="s2">&quot;</span>
+    
+    <span class="k">if</span> <span class="n">analysis</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;explanation&quot;</span><span class="p">):</span>
+        <span class="n">result</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;&lt;strong&gt;Объяснение:&lt;/strong&gt;</span><span class="se">\n</span><span class="si">{</span><span class="n">analysis</span><span class="p">[</span><span class="s1">&#39;explanation&#39;</span><span class="p">]</span><span class="si">}</span><span class="se">\n\n</span><span class="s2">&quot;</span>
+    
+    <span class="k">if</span> <span class="n">analysis</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;suggestions&quot;</span><span class="p">):</span>
+        <span class="n">result</span> <span class="o">+=</span> <span class="s2">&quot;&lt;strong&gt;Рекомендации:&lt;/strong&gt;</span><span class="se">\n</span><span class="s2">&lt;ul&gt;&quot;</span>
+        <span class="k">for</span> <span class="n">suggestion</span> <span class="ow">in</span> <span class="n">analysis</span><span class="p">[</span><span class="s2">&quot;suggestions&quot;</span><span class="p">]:</span>
+            <span class="n">result</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;&lt;li&gt;</span><span class="si">{</span><span class="n">suggestion</span><span class="si">}</span><span class="s2">&lt;/li&gt;&quot;</span>
+        <span class="n">result</span> <span class="o">+=</span> <span class="s2">&quot;&lt;/ul&gt;&quot;</span>
+    
+    <span class="k">return</span> <span class="n">result</span> </div>
+
+
+<div class="viewcode-block" id="format_basic_analysis">
+<a class="viewcode-back" href="../modules/ai_helper.html#ai_helper.format_basic_analysis">[docs]</a>
+<span class="k">def</span> <span class="nf">format_basic_analysis</span><span class="p">(</span><span class="n">error_message</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Форматирует базовый анализ ошибки&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="p">{</span>
+        <span class="s1">&#39;error_type&#39;</span><span class="p">:</span> <span class="s1">&#39;Ошибка логики&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;explanation&#39;</span><span class="p">:</span> <span class="n">error_message</span><span class="p">,</span>
+        <span class="s1">&#39;suggestions&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;Попробуйте позже или обратитесь к преподавателю.&#39;</span><span class="p">],</span>
+        <span class="s1">&#39;concepts&#39;</span><span class="p">:</span> <span class="p">[]</span>
+    <span class="p">}</span> </div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, t sarikov kalmykov sharibov volkov.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
